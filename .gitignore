@@ -1,0 +1,15 @@
+node_modules/
+client/node_modules/
+build/
+data/
+*.db
+*.exe
+*.dll
+*.so
+*.dylib
+server/clientEmbed.js
+server/integrations/index.js
+server/migrations/index.js
+.idea/
+.vscode/
+*.log
