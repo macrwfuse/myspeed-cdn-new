@@ -1,0 +1,88 @@
+@use "@/common/styles/colors" as *
+
+.selectable-list
+  display: flex
+  flex-direction: column
+  gap: 0.5rem
+
+.selectable-option
+  display: flex
+  align-items: center
+  gap: 1rem
+  padding: 0.875rem 1.125rem
+  border-radius: 0.75rem
+  border: 1px solid $light-gray
+  cursor: pointer
+  transition: all 0.15s ease
+
+  &:hover
+    background-color: $darker-gray
+
+  &-icon
+    font-size: 1.25rem
+    color: $subtext
+    width: 1.5rem
+    flex-shrink: 0
+
+  &-image
+    width: 2.25rem
+    height: auto
+    border-radius: 0.25rem
+    flex-shrink: 0
+    object-fit: contain
+
+  &-text
+    flex: 1
+    min-width: 0
+
+    h3
+      margin: 0
+      font-size: 1rem
+      font-weight: 500
+      color: $subtext
+
+    p
+      margin: 0.15rem 0 0
+      font-size: 0.85rem
+      color: $subtext
+      opacity: 0.7
+
+  &-radio
+    width: 1.15rem
+    height: 1.15rem
+    border-radius: 50%
+    border: 2px solid $subtext
+    flex-shrink: 0
+    position: relative
+    transition: border-color 0.15s ease
+
+  &-radio-active
+    border-color: $accent-primary
+
+    &::after
+      content: ""
+      position: absolute
+      top: 50%
+      left: 50%
+      transform: translate(-50%, -50%)
+      width: 0.55rem
+      height: 0.55rem
+      border-radius: 50%
+      background-color: $accent-primary
+
+.selectable-option-active
+  background-color: $light-gray
+  border-color: $accent-primary
+
+  .selectable-option-icon
+    color: $white
+
+  .selectable-option-text h3
+    color: $white
+
+  &:hover
+    background-color: $light-gray
+
+@media screen and (max-width: 425px)
+  .selectable-option
+    padding: 0.75rem 1rem
