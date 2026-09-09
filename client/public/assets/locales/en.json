@@ -1,0 +1,592 @@
+{
+  "failed": "Failed",
+  "welcome": {
+    "step": "Step",
+    "title": "Welcome to MySpeed!",
+    "subtext": "Let's set up MySpeed for the first time. Don't worry, it won't take long.",
+    "provider_title": "Choose a provider",
+    "provider_subtext": "Select the provider you want to use here. This provider will then perform your tests.",
+    "data_title": "Set optimal data",
+    "data_subtext": "Select your contractually agreed speeds in this step",
+    "ms": "(in ms)",
+    "mbps": "(in Mbps)",
+    "accept_title": "Accept the terms",
+    "accept_subtext": "In this step, we would like to inform you about the Ookla license. Read it and confirm that you have read and accept it by clicking on “Done”."
+  },
+  "dialog": {
+    "okay": "Okay",
+    "done": "Done",
+    "continue": "Continue",
+    "apply": "Yes, apply",
+    "update": "Update",
+    "close": "Close",
+    "unset": "Remove",
+    "retry": "Try again",
+    "login": "Login",
+    "save": "Save",
+    "saving": "Saving...",
+    "password": {
+      "title": "Password required",
+      "placeholder": "Your password",
+      "wrong": "The password you entered is incorrect",
+      "unlock": "Unlock"
+    },
+    "api": {
+      "title": "API not reachable",
+      "description": "MySpeed could not reach the API of this instance. Please try again later."
+    },
+    "provider": {
+      "interface": "Interface",
+      "server": "Server",
+      "server_id": "Server ID",
+      "custom_url": "Custom URL",
+      "custom_url_placeholder": "https://speed.test/backend/",
+      "choose_automatically": "Choose automatically",
+      "ookla_license": "I have read and accept the <Eula>EULA</Eula>, <GDPR>privacy policy</GDPR> and <TOS>terms of service</TOS> of Ookla.",
+      "ookla_notice": "By using Ookla, you agree to their <Eula>EULA</Eula>, <GDPR>privacy policy</GDPR> and <TOS>terms of service</TOS>.",
+      "ookla_desc": "Popular provider with global server network",
+      "libre_desc": "Open-source, self-hostable speedtest",
+      "cloudflare_desc": "Fast CDN-based testing"
+    }
+  },
+  "dropdown": {
+    "settings": "Settings",
+    "changes_applied": "Your changes have been saved.",
+    "language_changed": "The language has been changed.",
+    "provider_changed": "The provider has been changed.",
+    "changes_unsaved": "Your changes were not applied. Check your input.",
+    "invalid": "Input invalid",
+    "ping": "Optimal ping",
+    "upload": "Optimal up-speed",
+    "download": "Optimal down-speed",
+    "recommendations": "Recommendations",
+    "optimal_values": "Optimal values",
+    "change_provider": "Change provider",
+    "password": "Change password",
+    "cron": "Set frequency",
+    "time": "Set period",
+    "storage": "Manage storage",
+    "pause_tests": "Pause tests",
+    "resume_tests": "Resume tests",
+    "language": "Change language",
+    "light_mode": "Light mode",
+    "dark_mode": "Dark mode",
+    "theme_switched_light": "Switched to light mode",
+    "theme_switched_dark": "Switched to dark mode",
+    "preferences": "Preferences",
+    "provider": "About the provider",
+    "integrations": "Integrations"
+  },
+  "about": {
+    "title": "About MySpeed",
+    "description": "MySpeed is an open-source speedtest analysis software that records your internet speed over a configurable period of time.",
+    "github": "GitHub",
+    "website": "Website",
+    "donate": "Donate",
+    "translate": "Translate",
+    "made_by": "Made with"
+  },
+  "options": {
+    "cron": {
+      "continuous": "Continuous",
+      "continuous_desc": "Every minute - high resource usage",
+      "frequent": "Very often",
+      "frequent_desc": "Every 30 minutes",
+      "default": "Default",
+      "default_desc": "Every hour - recommended",
+      "rare": "Rarely",
+      "rare_desc": "Every 3 hours",
+      "really_rare": "Very rarely",
+      "really_rare_desc": "Every 6 hours"
+    },
+    "level": {
+      "no_access": "No Access",
+      "read_access": "Read-only Access"
+    }
+  },
+  "password": {
+    "no_access_desc": "Visitors must enter the password to view anything",
+    "read_access_desc": "Visitors can view data but can't change settings"
+  },
+  "pause": {
+    "manual": "Pause Indefinitely",
+    "manual_desc": "Pause until manually resumed",
+    "short": "Short Break",
+    "short_desc": "Pause for 1 hour",
+    "medium": "Medium Break",
+    "medium_desc": "Pause for 6 hours",
+    "long": "Long Break",
+    "long_desc": "Pause for 12 hours",
+    "custom": "Custom Duration"
+  },
+  "page": {
+    "overview": "Overview",
+    "statistics": "Statistics"
+  },
+  "update": {
+    "ping_title": "Set optimal ping (ms)",
+    "ping_placeholder": "Ping (ms)",
+    "upload_title": "Set optimal up-speed (Mbps)",
+    "upload_placeholder": "Up speed (Mbps)",
+    "download_title": "Set optimal down-speed (Mbps)",
+    "download_placeholder": "Down speed (Mbps)",
+    "recommendations_title": "Optimal recommendations",
+    "recommendations_set": "Set automatic recommendations?",
+    "provider_title": "Set speedtest provider",
+    "manually": "Set manually",
+    "new_password": "Set a new password",
+    "password_placeholder": "New password",
+    "password_removed": "The password lock has been removed and the set password has been removed.",
+    "level": "Change level",
+    "level_title": "Rights for visitors",
+    "cron_title": "Set test frequency",
+    "cron_rules": "Cron rule",
+    "cron_next_test": "Next Test:",
+    "custom_cron": "Custom cron expression",
+    "schedule_offset": "Offset schedule",
+    "schedule_offset_desc": "Adds a small delay to prevent tests from starting at exact times",
+    "advanced": "Advanced",
+    "time_title": "Show tests of the last ...",
+    "download": "Download",
+    "pause_title": "Pause speedtests for...",
+    "hours": "Hours",
+    "pause": "Pause",
+    "pause_manual_hint": "Leave empty to pause indefinitely",
+    "release_manually": "Release manually",
+    "language": "Change language",
+    "view_title": "Switch view"
+  },
+  "header": {
+    "title": "MySpeed",
+    "running_tooltip": "Speedtest running",
+    "start_tooltip": "Start speedtest",
+    "new_update": "Update available",
+    "download": "Download",
+    "paused": "Speedtests are currently paused. Please continue them if you want to do one.",
+    "running": "A speedtest is already running. Please wait a moment.",
+    "admin_login": "Admin Login",
+    "servers": "Servers",
+    "beta": {
+      "title": "Beta Version",
+      "description": "This feature is still in beta. If you find any bugs, please report them <Link>here</Link>."
+    }
+  },
+  "storage": {
+    "speedtests": "Speedtests",
+    "configuration": "Configuration",
+    "stored_tests": "Stored tests",
+    "tests": "Tests",
+    "export_tests": "Export tests",
+    "tests_exported": "The tests have been exported",
+    "csv": "CSV",
+    "json": "JSON",
+    "import_tests": "Import tests",
+    "tests_imported": "The tests have been imported",
+    "import_test_error": "An error occurred while importing the tests",
+    "import_config_error": "An error occurred while importing the configuration",
+    "export": "Export",
+    "import": "Import",
+    "clear_history": "Clear history",
+    "history_cleared": "The history has been cleared",
+    "delete": "Delete",
+    "confirm_delete": "Yes, delete",
+    "export_settings": "Export settings",
+    "import_settings": "Import settings",
+    "factory_reset": "Factory reset",
+    "factory_reset_completed": "The factory reset has been completed",
+    "reset": "Reset",
+    "confirm_reset": "Yes, reset",
+    "settings_exported": "The settings have been exported",
+    "settings_imported": "The settings have been imported",
+    "retention": "Data retention",
+    "retention_desc": "How long speedtest results are kept before being automatically deleted.",
+    "retention_saved": "Retention period updated",
+    "retention_days_placeholder": "365",
+    "retention_days_suffix": "days",
+    "retention_back": "Back to presets",
+    "retention_options": {
+      "week": "7 days",
+      "month": "30 days",
+      "quarter": "90 days",
+      "half_year": "180 days",
+      "year": "1 year (default)",
+      "forever": "Keep forever",
+      "custom": "Custom..."
+    }
+  },
+  "latest": {
+    "ping": "Ping",
+    "ping_unit": "ms",
+    "jitter": "Jitter",
+    "jitter_unit": "ms",
+    "down": "Download",
+    "speed_unit": "Mbps",
+    "byte_speed_unit": "MB/s",
+    "up": "Upload",
+    "latest": "Last test",
+    "before": "before"
+  },
+  "network": {
+    "ip": "Exit IP",
+    "isp": "ISP",
+    "location": "Location",
+    "loading": "Loading...",
+    "error": "Failed to fetch"
+  },
+  "info": {
+    "recommendations_error": "You have to do at least 10 tests to get an average. It doesn't matter if the tests were done manually or automatically.",
+    "recommendations_info": "Based on the last 10 tests, it was found that the optimal ping was <Bold>{{ping}} ms</Bold>, the download at <Bold>{{down}} Mbps</Bold> and the upload at <Bold>{{up}} Mbps</Bold>. It is best to orientate yourself on your internet contract and only adopt it if it matches that.",
+    "update": "An update to version {{version}} is available. See <Changes>the changes</Changes> and <DLLink>download the update</DLLink>.",
+    "down": {
+      "title": "Download speed",
+      "description": "Download speed affects your browsing experience. The more you get, the faster your computer can receive data."
+    },
+    "ping": {
+      "title": "Ping",
+      "description": "The ping shows you how fast the respective provider responds. The shorter the time, the better."
+    },
+    "jitter": {
+      "title": "Jitter",
+      "description": "Jitter is the variation in ping response times. Lower jitter means a more stable connection, which is important for real-time applications like video calls and gaming."
+    },
+    "up": {
+      "title": "Upload speed",
+      "description": "Upload speed affects your browsing experience. The more you get, the faster your computer can send data."
+    },
+    "latest": {
+      "title": "Last test",
+      "description": "This is the time that shows you when the last test was run. In this case, the last one took place on <Bold>{{date}}</Bold> at <Bold>{{time}}</Bold>."
+    }
+  },
+  "time": {
+    "now": "Just now",
+    "seconds": "{{seconds}} seconds",
+    "minute": "1 minute",
+    "minutes": "{{minutes}} minutes",
+    "hour": "1 hour",
+    "hours": "{{hours}} hours",
+    "on": "On",
+    "at": "At"
+  },
+  "test": {
+    "not_available": "There are currently no tests available",
+    "no_latest": "There is no current test available. Please perform a test or wait until the next test is performed.",
+    "loading_more": "Loading more tests...",
+    "no_more_tests": "No more tests to load",
+    "unknown_error": "Unknown error:",
+    "failed": "Test failed",
+    "recheck": "Please check as far as possible if this happens often.",
+    "delete": "Delete Test",
+    "deleted": "The test has been deleted",
+    "average": {
+      "title": "Average Speed",
+      "description": "<Bold>{{amount}}</Bold> Tests have shown that on <Bold>{{date}}</Bold> an average download speed of <Bold>{{down}} Mbps </Bold> and an upload speed of <Bold>{{up}} Mbps</Bold> was passed. The tests took an average of <Bold>{{duration}} Seconds</Bold>."
+    },
+    "result": {
+      "title": "Test result",
+      "description": "<Link>This test</Link> achieved a maximum download speed of <Bold>{{down}} Mbps</Bold> and a maximum upload speed of <Bold>{{up}} Mbps</Bold>. It was created <Bold>{{type}}</Bold> and took <Bold>{{duration}} Seconds</Bold>.",
+      "jitter": " The connection jitter was <Bold>{{jitter}} ms</Bold>.",
+      "from_you": "by you",
+      "automatic": "automatically"
+    },
+    "overview": {
+      "title_range": "Test overview from {{from}} to {{to}}"
+    }
+  },
+  "errors": {
+    "network_unreachable": "Internet connection was unstable during the time of the test",
+    "took_too_long": "The test took too long and was canceled",
+    "no_permission": "MySpeed has no permission to start this test",
+    "resource_unavailable": "The test could not be performed because the resource was temporarily unavailable",
+    "no_route": "The test could not be performed because there was no route to the host",
+    "connection_refused": "The test could not be performed because the connection was rejected",
+    "timed_out": "Internet connection was unstable during the time of the test",
+    "config": "The configuration file could not be loaded",
+    "invalid_view": "Invalid view"
+  },
+  "statistics": {
+    "average": "Average",
+    "export": {
+      "button": "Export"
+    },
+    "overview": {
+      "total_title": "Total tests",
+      "total_description": "The number of executed tests",
+      "failed_title": "Failed tests",
+      "failed_description": "The number of failed tests",
+      "average_title": "Average duration",
+      "average_description": "The average duration of the tests"
+    },
+    "failed": {
+      "title": "Failed tests",
+      "success": "Successful",
+      "failed": "Failed",
+      "label": "Tests"
+    },
+    "speed": {
+      "title": "Speed"
+    },
+    "manual": {
+      "title": "Manual tests",
+      "yes": "Created manually",
+      "no": "Created automatically"
+    },
+    "duration": {
+      "title": "Test duration",
+      "label": "Amount"
+    },
+    "values": {
+      "min": "Minimum",
+      "max": "Maximum",
+      "avg": "Average",
+      "down": "Download values",
+      "up": "Upload values"
+    },
+    "failed_test": "Failed test",
+    "hourly": {
+      "title": "Speed by Time of Day",
+      "sample_count": "Tests"
+    },
+    "consistency": {
+      "title": "Connection Stability",
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "ping_variance": "Ping variance"
+    }
+  },
+  "calendar": {
+    "select_range": "Select date range",
+    "select_start": "Select start date",
+    "select_end": "Select end date",
+    "from": "From",
+    "to": "To",
+    "last_7_days": "Last 7 days",
+    "last_30_days": "Last 30 days",
+    "last_90_days": "Last 90 days",
+    "last_year": "Last year",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "nodes": {
+    "add": "Add server",
+    "create": "Add",
+    "this_server": "This server",
+    "created": "The server has been successfully added",
+    "password_required": "This node requires a password",
+    "update_password": "Please update the password of this node",
+    "password_outdated": "Password outdated",
+    "password_updated": "The password has been successfully updated",
+    "preview_active": "Adding and deleting servers is disabled during demo mode.",
+    "placeholder": {
+      "name": "MySpeed instance",
+      "url": "https://your-server.com"
+    },
+    "group": {
+      "name": "Server name",
+      "url": "Server address"
+    },
+    "delete": {
+      "title": "Delete server",
+      "description": "The server <Bold>{{name}}</Bold> (#{{id}}) will be deleted. This action cannot be undone. Do you want to continue?",
+      "yes": "Yes, delete",
+      "success": "The server has been deleted successfully"
+    },
+    "rename": {
+      "title": "Rename server",
+      "placeholder": "New server name",
+      "success": "The server has been renamed successfully"
+    },
+    "messages": {
+      "not_reachable": "Server is not reachable",
+      "password_changed": "Password changed",
+      "tests_pending": "Test results pending"
+    }
+  },
+  "preview": {
+    "title": "Demo mode",
+    "info": "DEMO",
+    "description": "You are currently in demo mode. Some features are disabled and some settings cannot be changed. If you want to use all features, you can <Link>install MySpeed</Link> on your own server."
+  },
+  "integrations": {
+    "none_active": "This integration is not active. <br/><Bold>Create</Bold>",
+    "preview_active": "Integrations are disabled during demo mode.",
+    "display_name": "Integration name",
+    "create": "Create",
+    "activity": {
+      "never_executed": "Never executed",
+      "last_run": "Last run before "
+    },
+    "discord": {
+      "title": "Discord",
+      "fields": {
+        "url": "Webhook-URL",
+        "url_placeholder": "https://discord.com/api/webhooks/...",
+        "display_name": "Display name",
+        "display_name_placeholder": "MySpeed Notification",
+        "error_message": "Error message",
+        "error_message_placeholder": "[%year%-%month%-%day% %hour%:%minute%] Error: %error%",
+        "send_failed": "Send error messages",
+        "send_finished": "Send finished messages",
+        "finished_message": "Finished message",
+        "finished_message_placeholder": "%year%-%month%-%day% %hour%:%minute% — %ping% ms, %download% Mbps, %upload% Mbps"
+      }
+    },
+    "gotify": {
+      "title": "Gotify",
+      "fields": {
+        "url": "Server-URL",
+        "key": "App token",
+        "priority": "Priority",
+        "error_message": "Error message",
+        "error_message_placeholder": "[%year%-%month%-%day% %hour%:%minute%] Error: %error%",
+        "send_failed": "Send error messages",
+        "send_finished": "Send finished messages",
+        "finished_message": "Finished message",
+        "finished_message_placeholder": "%year%-%month%-%day% %hour%:%minute% — %ping% ms, %download% Mbps, %upload% Mbps"
+      }
+    },
+    "pushover": {
+      "title": "Pushover",
+      "fields": {
+        "token": "App token",
+        "user_key": "User key",
+        "error_message": "Error message",
+        "error_message_placeholder": "[%year%-%month%-%day% %hour%:%minute%] Error: %error%",
+        "send_failed": "Send error messages",
+        "send_finished": "Send finished messages",
+        "finished_message": "Finished message",
+        "finished_message_placeholder": "%year%-%month%-%day% %hour%:%minute% — %ping% ms, %download% Mbps, %upload% Mbps"
+      }
+    },
+    "healthChecks": {
+      "title": "HealthChecks",
+      "fields": {
+        "url": "HealthChecks-URL",
+        "url_placeholder": "https://hc-ping.com/<uuid>",
+        "interval": "Ping interval (minutes)",
+        "interval_placeholder": "1"
+      }
+    },
+    "influxdb": {
+      "title": "InfluxDB",
+      "fields": {
+        "url": "Server-URL",
+        "url_placeholder": "http://localhost:8086",
+        "org": "Organization",
+        "bucket": "Bucket",
+        "token": "API token",
+        "measurement": "Measurement name",
+        "measurement_placeholder": "speedtests (default)",
+        "host": "Host tag",
+        "host_placeholder": "Defaults to the machine hostname",
+        "tags": "Additional tags",
+        "tags_placeholder": "region=eu,role=primary (comma-separated)"
+      }
+    },
+    "ntfy": {
+      "title": "ntfy",
+      "fields": {
+        "url": "Server-URL",
+        "url_placeholder": "https://ntfy.sh",
+        "topic": "Topic",
+        "topic_placeholder": "myspeed-alerts",
+        "token": "Access token",
+        "token_placeholder": "tk_... (optional, for protected servers)",
+        "title": "Notification title",
+        "title_placeholder": "MySpeed (optional)",
+        "tags": "Tags",
+        "tags_placeholder": "warning,satellite (comma-separated)",
+        "priority": "Default priority (1-5)",
+        "priority_placeholder": "3",
+        "error_priority": "Error priority (1-5)",
+        "error_priority_placeholder": "5",
+        "error_message": "Error message",
+        "error_message_placeholder": "[%year%-%month%-%day% %hour%:%minute%] Error: %error%",
+        "send_failed": "Send error messages",
+        "send_finished": "Send finished messages",
+        "finished_message": "Finished message",
+        "finished_message_placeholder": "%year%-%month%-%day% %hour%:%minute% — %ping% ms, %download% Mbps, %upload% Mbps"
+      }
+    },
+    "telegram": {
+      "title": "Telegram",
+      "fields": {
+        "token": "Bot Token",
+        "chat_id": "Chat ID",
+        "error_message": "Error message",
+        "error_message_placeholder": "[%year%-%month%-%day% %hour%:%minute%] Error: %error%",
+        "send_failed": "Send error messages",
+        "send_finished": "Send finished messages",
+        "finished_message": "Finished message",
+        "finished_message_placeholder": "%year%-%month%-%day% %hour%:%minute% — %ping% ms, %download% Mbps, %upload% Mbps"
+      }
+    },
+    "webhook": {
+      "title": "Webhook",
+      "fields": {
+        "url": "Webhook-URL",
+        "url_placeholder": "https://your-server.com/hook",
+        "send_started": "Send started",
+        "send_failed": "Send error messages",
+        "send_finished": "Send finished messages",
+        "send_alive": "Send Keep-Alive messages",
+        "send_recommendations": "Send recommendations",
+        "send_config_updates": "Send configuration updates",
+        "interval": "Keep-Alive interval (minutes)",
+        "interval_placeholder": "1"
+      }
+    }
+  },
+  "common": {
+    "back_to_top": "Back to top"
+  },
+  "not_found": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "back_home": "Back to Home"
+  },
+  "route_error": {
+    "title": "Oops!",
+    "subtitle": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again or go back to the home page.",
+    "reload": "Reload Page"
+  },
+  "optimal_values": {
+    "title": "Optimal Values",
+    "use_recommended": "Use recommended"
+  },
+  "preferences": {
+    "title": "Preferences",
+    "theme": {
+      "title": "Appearance",
+      "description": "Switch between dark and light interface.",
+      "dark": "Dark",
+      "dark_desc": "Easier on the eyes in low light",
+      "light": "Light",
+      "light_desc": "Brighter look for daytime use"
+    },
+    "time_format": {
+      "title": "Time format",
+      "description": "How clock times are displayed throughout the app.",
+      "h24": "24-hour",
+      "h24_desc": "Display times like 14:30",
+      "h12": "12-hour",
+      "h12_desc": "Display times like 2:30 PM"
+    },
+    "speed_unit": {
+      "title": "Speed unit",
+      "description": "Choose how speeds are shown. Values are converted automatically.",
+      "mbps": "Mbps (Megabits per second)",
+      "mbps_desc": "Standard ISP / speedtest unit",
+      "mbytes": "MB/s (Megabytes per second)",
+      "mbytes_desc": "Common in browsers and download managers"
+    }
+  }
+}
