@@ -178,13 +178,12 @@ export const LIBRE_CN_SERVERS = {
 // 备注：
 //   mbd.baidu.com / vcs.zijieapi.com        多流 octet-stream 直传即可（speed.do/st 核心1/2）
 //   speed.cloudflare.com/__up               需带 UA/Origin 且 URL 不带额外参数
-//   netsp.master.qq.com/cgi-bin/netspeed    QQ管家协议 multipart、仅单流
 // 请求方式的自动适配在 server/util/providers/cdnSpeedtest.js（按主机匹配）。
+// 注: netsp.master.qq.com 上传慢(实测大包 multipart 拖长), 不放入共享池, 仅 cdn-tencent 池尾用
 export const CDN_UPLOAD_URLS = [
     "https://mbd.baidu.com/ztbox?action=zpblog&nocache=1",
     "https://vcs.zijieapi.com/vc/setting?aid=6383&pageId=6241&nocache=1",
-    "https://speed.cloudflare.com/__up",
-    "http://netsp.master.qq.com/cgi-bin/netspeed"
+    "https://speed.cloudflare.com/__up"
 ];
 
 export const CDN_SERVERS = {
@@ -261,7 +260,7 @@ export const CDN_SERVERS = {
     "cdn-baidu": {
         id: "cdn-baidu",
         name: "百度网盘 CDN",
-        downloadUrl: "https://issuepcdn.baidupcs.com/issue/netdisk/LinuxGuanjia/4.17.7/baidunetdisk_4.17.7_amd64.deb",
+        downloadUrl: "https://cd.pddpic.com/android_dev/2023-11-08/a35eaee8e1f9f018cc40ace12931f7a2.apk",
         uploadUrls: CDN_UPLOAD_URLS,
         pingUrl: "https://issuepcdn.baidupcs.com/",
         streams: 4,
@@ -406,7 +405,7 @@ export const CDN_SERVERS = {
             "https://gw.alipayobjects.com/os/volans-demo/93211a67-0eed-40ff-8a48-f6c137a88781/MiniProgramStudio-3.1.3.exe",
             "https://downapp.sina.cn/m/06/sinaNews_8.27.0_1719288606_4386_3538_armeabi-v7a.apk",
             "https://i1.sinaimg.cn/edu/sinaopen/SinaOpencourse_V2.02.apk",
-            "https://statics.itc.cn/lt-app/sohumobile_official_gray_optimizeRelease_4_1.0.3_01161850.apk",
+            "https://lf3-cdn-tos.bytegoofy.com/obj/douyin-pc-client/7044145585217083655/releases/8293088/1.0.8/win32-ia32/douyin-v1.0.8-win32-ia32-douyin.exe",
             "https://open-image.ws.126.net/android_phone_release-sp_open-v9.9.9-v0a5b3c1dc0df472bb2fb057d0a5426c3.apk",
             "https://lf3-cdn-tos.bytegoofy.com/obj/douyin-pc-client/7044145585217083655/releases/8293088/1.0.8/win32-ia32/douyin-v1.0.8-win32-ia32-douyin.exe",
             "https://lf6-cdn-tos.bytegoofy.com/obj/douyin-pc-client/7044145585217083655/releases/8293088/1.0.8/win32-ia32/douyin-v1.0.8-win32-ia32-douyin.exe",
@@ -460,7 +459,11 @@ export const CDN_SERVERS = {
         downloadUrls: [
             "http://webcdn.m.qq.com/speed/SpeedTestData.dat"
         ],
-        uploadUrls: CDN_UPLOAD_URLS,
+        // 腾讯节点专属上传池: 共享快端点优先, QQ 管家端点置底(慢, 兜底)
+        uploadUrls: [
+            ...CDN_UPLOAD_URLS,
+            "http://netsp.master.qq.com/cgi-bin/netspeed"
+        ],
         pingUrl: "http://webcdn.m.qq.com",
         streams: 20,
         downloadTime: 10,
