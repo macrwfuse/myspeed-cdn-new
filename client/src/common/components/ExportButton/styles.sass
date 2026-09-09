@@ -1,0 +1,115 @@
+@use "@/common/styles/colors" as *
+
+.export-button-container
+  position: relative
+  display: inline-flex
+  flex-shrink: 0
+
+.export-button
+  display: flex
+  align-items: center
+  gap: 0.5rem
+  padding: 0.6rem 1rem
+  background-color: $dark-gray
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  cursor: pointer
+  transition: all 0.2s ease-in-out
+  color: $white
+  font-family: inherit
+  font-size: 0.95rem
+  font-weight: 600
+  white-space: nowrap
+  
+  &:hover:not(:disabled)
+    border-color: $accent-primary
+  
+  &:disabled
+    opacity: 0.6
+    cursor: not-allowed
+
+.export-icon
+  color: $subtext
+  font-size: 1rem
+  flex-shrink: 0
+
+.export-text
+  white-space: nowrap
+
+.chevron-icon
+  color: $subtext
+  font-size: 0.75rem
+  transition: transform 0.2s ease
+  
+  &.open
+    transform: rotate(180deg)
+
+.export-dropdown
+  position: absolute
+  top: calc(100% + 0.375rem)
+  right: 0
+  left: 0
+  z-index: 1000
+  background-color: $dark-gray
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3)
+  overflow: hidden
+  padding: 6px
+  animation: dropdownFadeIn 0.15s ease-out
+
+@keyframes dropdownFadeIn
+  from
+    opacity: 0
+    transform: translateY(-8px) scale(0.98)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
+
+.export-option
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 8px 12px
+  border-radius: 6px
+  color: $subtext
+  cursor: pointer
+  transition: all 0.15s ease
+
+  &:hover
+    background-color: $darker-gray
+    color: $white
+
+    svg
+      color: $white
+
+  svg
+    width: 14px
+    height: 14px
+    flex-shrink: 0
+
+  span
+    font-size: 0.95rem
+    font-weight: 500
+
+@media screen and (max-width: 600px)
+  .export-text
+    display: none
+  
+  .export-button
+    padding: 0.55rem 0.7rem
+    aspect-ratio: 1 / 1
+    justify-content: center
+  
+  .chevron-icon
+    display: none
+  
+  .export-dropdown
+    position: fixed
+    top: auto
+    bottom: 1rem
+    left: 50%
+    right: auto
+    transform: translateX(-50%)
+    width: calc(100vw - 2rem)
+    max-width: 20rem
