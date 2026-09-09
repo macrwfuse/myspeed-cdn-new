@@ -1,0 +1,112 @@
+@use "colors" as *
+
+body, html
+  margin: 0
+  height: 100vh
+  overflow-x: hidden
+  background-color: $background
+  font-family: "Inter", sans-serif
+  font-weight: 600
+  position: relative
+
+body::before
+  content: ""
+  position: fixed
+  top: -30%
+  left: 50%
+  transform: translateX(-50%)
+  width: 150%
+  height: 80%
+  background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.06) 0%, transparent 60%)
+  pointer-events: none
+  z-index: 0
+
+#root
+  position: relative
+  z-index: 1
+
+::-webkit-scrollbar
+  width: 12px
+  background: $background
+
+::-webkit-scrollbar-track
+  background: $background
+  border-radius: 10px
+  margin: 5px
+
+::-webkit-scrollbar-thumb
+  background: $light-gray
+  border-radius: 10px
+  border: 3px solid $background
+  min-height: 40px
+
+::-webkit-scrollbar-thumb:hover
+  background: $subtext
+
+::-webkit-scrollbar-thumb:active
+  background: $white
+
+.speedtest-icon
+  font-size: 26pt
+  color: $white
+  margin-right: 10px
+
+.container-icon
+  width: 35px
+  height: 35px
+  color: $white
+  font-size: 26pt
+
+.help-icon
+  cursor: help
+
+.icon-red
+  color: $accent-danger
+
+.icon-error
+  color: $accent-danger
+  filter: brightness(0.9)
+
+.icon-green
+  color: $accent-primary
+
+.icon-orange
+  color: $accent-warning
+
+.icon-blue
+  color: $blue
+
+main
+  display: flex
+  flex-direction: column
+  align-items: center
+  margin-left: 1rem
+  margin-right: 1rem
+
+@keyframes opacity
+  0%
+    opacity: 0
+  100%
+    opacity: 1
+
+@keyframes fadeIn
+  0%
+    opacity: 0
+    transform: scale(0.95)
+    filter: blur(2px)
+  100%
+    opacity: 1
+    transform: scale(1)
+
+@keyframes fadeOut
+  0%
+    opacity: 1
+    transform: scale(1)
+  100%
+    opacity: 0
+    transform: scale(0.95)
+    filter: blur(2px)
+
+@media (max-width: 730px)
+  ::-webkit-scrollbar
+    width: 5px
