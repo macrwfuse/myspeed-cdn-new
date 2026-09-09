@@ -1,0 +1,80 @@
+@use "@/common/styles/colors" as *
+
+.speedtest
+  margin-bottom: 2rem
+  display: flex
+  padding: 1.5rem 2rem
+  border: 1px solid $light-gray
+  background-color: var(--glass-bg)
+  backdrop-filter: blur(16px)
+  -webkit-backdrop-filter: blur(16px)
+  border-radius: 1rem
+  justify-content: space-between
+  width: 100%
+  flex-wrap: wrap
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1)
+  animation: fadeIn 0.5s ease-out
+  cursor: pointer
+  user-select: none
+  box-sizing: border-box
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1)
+  position: relative
+  overflow: hidden
+
+.speedtest:hover
+  border-color: var(--accent-primary)
+  transform: translateY(-4px)
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.1)
+
+.speedtest-hidden
+  visibility: hidden
+  opacity: 0
+  animation: fadeOut 0.3s
+
+.speedtest-row
+  display: flex
+  align-items: center
+
+.date
+  display: flex
+  align-items: center
+
+.date-text
+  margin: 0 0 0 1rem
+  font-size: 24pt
+  font-weight: 500
+  color: $subtext
+
+.speedtest-text
+  margin: 0
+  font-size: 28pt
+  font-weight: 500
+  color: $subtext
+  display: flex
+  align-items: center
+
+.jitter-suffix
+  font-size: 14pt
+  font-weight: 400
+  color: $subtext
+  padding-left: 0.4rem
+  margin-left: 0.4rem
+  border-left: 2px solid $light-gray
+  opacity: 0.7
+  display: flex
+  align-items: center
+  gap: 0.25rem
+
+  .jitter-icon
+    width: 0.9rem
+    height: 0.9rem
+
+@media (max-width: 605px)
+  .speedtest
+    flex-direction: column
+  .date-text
+    font-size: 32pt
+  .speedtest-text
+    font-size: 32pt
+  .jitter-suffix
+    font-size: 16pt
