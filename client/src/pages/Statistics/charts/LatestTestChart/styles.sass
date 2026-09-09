@@ -1,0 +1,56 @@
+@use "@/common/styles/colors" as *
+
+$purple: #8b5cf6
+
+.info-container
+  display: flex
+  flex-direction: column
+  gap: 1.75rem
+  justify-content: center
+  width: 100%
+
+.test-container
+  display: flex
+  justify-content: space-between
+  align-items: center
+  gap: 0.75rem
+
+.test-container svg
+  width: 2.5rem
+  height: 2.5rem
+  flex-shrink: 0
+
+.test-container .test-info
+  min-width: 0
+
+.test-container .test-info h2
+  color: $white
+  margin: 0
+  font-size: 1rem
+  font-weight: 600
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.test-container .test-info p
+  margin: 0
+  font-weight: 600
+  font-size: 1.1rem
+  display: flex
+  align-items: center
+
+.test-container .test-info p .jitter-value
+  font-size: 0.9rem
+  font-weight: 500
+  color: $subtext
+  padding-left: 0.35rem
+  margin-left: 0.35rem
+  border-left: 2px solid $light-gray
+  opacity: 0.7
+  display: inline-flex
+  align-items: center
+  gap: 0.2rem
+
+  .jitter-icon
+    width: 0.8rem
+    height: 0.8rem
