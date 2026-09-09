@@ -1,0 +1,178 @@
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faClose} from "@fortawesome/free-solid-svg-icons";
+
+const AlertContext = createContext(null);
+
+export const useAlert = () => {
+    const context = useContext(AlertContext);
+    if (!context) throw new Error("useAlert must be used within AlertProvider");
+    return context;
+};
+
+export const AlertProvider = ({children}) => {
+    const [alerts, setAlerts] = useState([]);
+    const alertIdRef = useRef(0);
+    const resolversRef = useRef(new Map());
+
+    const showAlert = useCallback((config) => {
+        return new Promise((resolve) => {
+            const id = ++alertIdRef.current;
+            resolversRef.current.set(id, resolve);
+            setAlerts(prev => [...prev, {...config, id}]);
+        });
+    }, []);
+
+    const closeAlert = useCallback((id, result = null) => {
+        const resolver = resolversRef.current.get(id);
+        if (resolver) {
+            resolver(result);
+            resolversRef.current.delete(id);
+        }
+        setAlerts(prev => prev.filter(a => a.id !== id));
+    }, []);
+
+    const openAlert = useCallback((title, description, options = {}) =>
+        showAlert({
+            type: "alert",
+            title,
+            description,
+            buttonText: options.buttonText || "OK", ...options
+        }), [showAlert]);
+
+    const openInput = useCallback((title, options = {}) =>
+        showAlert({type: "input", title, ...options}), [showAlert]);
+
+    const openSelect = useCallback((title, selectOptions, options = {}) =>
+        showAlert({
+            type: "select",
+            title,
+            options: selectOptions,
+            value: options.value || Object.keys(selectOptions)[0], ...options
+        }), [showAlert]);
+
+    const openConfirm = useCallback((title, description, options = {}) =>
+        showAlert({
+            type: "confirm",
+            title,
+            description,
+            buttonText: options.buttonText || "OK", ...options
+        }), [showAlert]);
+
+    const contextValue = useMemo(() => ({
+        openAlert, openInput, openSelect, openConfirm
+    }), [openAlert, openInput, openSelect, openConfirm]);
+
+    return (
+        <AlertContext.Provider value={contextValue}>
+            {children}
+            {alerts.map(alert => (
+                <AlertRenderer key={alert.id} alert={alert} onClose={(result) => closeAlert(alert.id, result)}/>
+            ))}
+        </AlertContext.Provider>
+    );
+};
+
+const AlertRenderer = ({alert, onClose}) => {
+    const areaRef = useRef();
+    const dialogRef = useRef();
+    const [inputValue, setInputValue] = useState(alert.value || "");
+    const [inputError, setInputError] = useState(false);
+    const closeResultRef = useRef(null);
+    const isClosingRef = useRef(false);
+
+    const close = useCallback((result = null) => {
+        if (alert.disableClose && result === null) return;
+        if (isClosingRef.current) return;
+        isClosingRef.current = true;
+        closeResultRef.current = result;
+        areaRef.current?.classList.add("dialog-area-hidden");
+        dialogRef.current?.classList.add("dialog-hidden");
+    }, [alert.disableClose]);
+
+    const handleAnimationEnd = (e) => {
+        if (e.animationName === "fadeOut") onClose(closeResultRef.current);
+    };
+
+    const handleBackdropClick = (e) => {
+        if (e.target === areaRef.current) close();
+    };
+
+    const handleKeyDown = useCallback((e) => {
+        if (e.key === "Escape" && !alert.disableClose) {
+            e.preventDefault();
+            close();
+        }
+        if (e.key === "Enter") {
+            e.preventDefault();
+            handleSubmit();
+        }
+    }, [alert, inputValue]);
+
+    useEffect(() => {
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [handleKeyDown]);
+
+    const handleSubmit = () => {
+        if (alert.type === "input" && alert.required && !inputValue) {
+            setInputError(true);
+            return;
+        }
+        const result = alert.type === "input" || alert.type === "select" ? inputValue : true;
+        alert.onSuccess?.(result);
+        close(result);
+    };
+
+    return createPortal(
+        <div className="dialog-area" ref={areaRef} onClick={handleBackdropClick}>
+            <div className="dialog" ref={dialogRef} onAnimationEnd={handleAnimationEnd}>
+                <div className="dialog-header">
+                    <h4 className="dialog-text">{alert.title}</h4>
+                    {!alert.disableClose &&
+                        <FontAwesomeIcon icon={faClose} className="dialog-text dialog-icon" onClick={() => close()}/>}
+                </div>
+                <div className="dialog-main">
+                    {alert.description && <p className="dialog-description">{alert.description}</p>}
+                    {alert.type === "input" && (
+                        <input className={`dialog-input${inputError ? " input-error" : ""}`}
+                               type={alert.inputType || "text"}
+                               placeholder={alert.placeholder} value={inputValue} autoFocus
+                               onChange={(e) => {
+                                   setInputValue(e.target.value);
+                                   setInputError(false);
+                               }}/>
+                    )}
+                    {alert.type === "select" && (
+                        <select className="dialog-input" value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}>
+                            {Object.entries(alert.options || {}).map(([key, label]) => (
+                                <option key={key} value={key}>{label}</option>
+                            ))}
+                        </select>
+                    )}
+                </div>
+                <div className="dialog-buttons">
+                    {alert.clearButton && (
+                        <button className="dialog-btn dialog-secondary" onClick={() => {
+                            alert.onClear?.();
+                            close();
+                        }}>
+                            {alert.clearButton}
+                        </button>
+                    )}
+                    {alert.type === "confirm" && (
+                        <button className="dialog-btn dialog-secondary" onClick={() => close(false)}>
+                            {alert.cancelText || "Cancel"}
+                        </button>
+                    )}
+                    <button className={`dialog-btn${alert.danger ? " dialog-danger" : ""}`} onClick={handleSubmit}>
+                        {alert.buttonText || "OK"}
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
