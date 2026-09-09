@@ -1,0 +1,421 @@
+{
+  "failed": "Неуспешен",
+  "welcome": {
+    "step": "Стъпка",
+    "title": "Добре дошли в MySpeed!",
+    "subtext": "Нека да настроим MySpeed за първи път. Не се притеснявайте, това няма да отнеме много време.",
+    "provider_title": "Избор на доставчик",
+    "provider_subtext": "Тук изберете доставчика, който искате да използвате. След това този доставчик ще извърши тестовете ви.",
+    "data_title": "Задаване на оптимални данни",
+    "data_subtext": "В тази стъпка изберете договорените скорости",
+    "ms": "(в ms)",
+    "mbps": "(в Mbps)",
+    "accept_title": "Приемане на условията",
+    "accept_subtext": "В тази стъпка бихме искали да ви информираме за лиценза на Ookla. Прочетете го и потвърдете, че сте го прочели и приели, като кликнете върху \"Готово\"."
+  },
+  "dialog": {
+    "okay": "Добре",
+    "done": "Готов",
+    "continue": "Продължи",
+    "apply": "Да, поемете управлението",
+    "update": "Актуализация",
+    "close": "Затвори",
+    "unset": "Премахване на",
+    "retry": "Опитайте отново",
+    "login": "Влезте в системата",
+    "password": {
+      "title": "Изисква се парола",
+      "placeholder": "Вашата парола",
+      "wrong": "Въведената от вас парола е неправилна",
+      "unlock": "Отключване на"
+    },
+    "api": {
+      "title": "API не е достъпен",
+      "description": "MySpeed не може да се свърже с API на тази инстанция. Моля, опитайте отново по-късно."
+    },
+    "provider": {
+      "interface": "Интерфейс",
+      "server": "Сървър",
+      "server_id": "Идентификатор на сървъра",
+      "choose_automatically": "Изберете автоматично",
+      "ookla_license": "Прочетох и приемам <Eula>ЛСКП,</Eula> <GDPR>политиката за поверителност</GDPR> и <TOS>условията за ползване на</TOS> Ookla."
+    }
+  },
+  "dropdown": {
+    "settings": "Настройки",
+    "changes_applied": "Промените са записани.",
+    "language_changed": "Езикът е променен.",
+    "provider_changed": "Доставчикът е променен.",
+    "changes_unsaved": "Промените ви не бяха приети. Проверете въведените данни.",
+    "invalid": "Невалиден вход",
+    "ping": "Оптимален пинг",
+    "upload": "Оптимална скорост нагоре",
+    "download": "Оптимална скорост нагоре",
+    "recommendations": "Оптимални стойности",
+    "change_provider": "Смяна на доставчика",
+    "password": "Промяна на паролата",
+    "cron": "Задаване на честота",
+    "time": "Зададен период",
+    "storage": "Управление на съхранението",
+    "pause_tests": "Тестове за пауза",
+    "resume_tests": "Продължи тестове",
+    "language": "Промяна на езика",
+    "light_mode": "Светлинен режим",
+    "dark_mode": "Тъмният режим",
+    "theme_switched_light": "Превключване в режим на светлина",
+    "theme_switched_dark": "Превключване в тъмен режим",
+    "info": "Информация за проекта",
+    "provider": "Щодо провайдера",
+    "integrations": "Интеграции"
+  },
+  "options": {
+    "cron": {
+      "continuous": "Непрекъснато (на всяка минута)",
+      "frequent": "Много често (на всеки 30 минути)",
+      "default": "Стандартно (на всеки час)",
+      "rare": "Рядко (на всеки 3 часа)",
+      "really_rare": "Много рядко (на всеки 6 часа)"
+    },
+    "level": {
+      "no_access": "Няма достъп",
+      "read_access": "Достъп само за четене"
+    }
+  },
+  "page": {
+    "overview": "Преглед",
+    "statistics": "Статистика"
+  },
+  "update": {
+    "ping_title": "Задаване на оптимален ping (ms)",
+    "ping_placeholder": "Ping (ms)",
+    "upload_title": "Задаване на оптимална скорост нагоре (Mbit/s)",
+    "upload_placeholder": "Скорост нагоре (Mbit/s)",
+    "download_title": "Задаване на оптимална скорост на спускане (Mbit/s)",
+    "download_placeholder": "Скорост надолу (Mbit/s)",
+    "recommendations_title": "Оптимални препоръки",
+    "recommendations_set": "Задаване на автоматични препоръки?",
+    "provider_title": "Задаване на доставчик на speedtest",
+    "manually": "Задайте ръчно",
+    "new_password": "Задаване на нова парола",
+    "password_placeholder": "Нова парола",
+    "password_removed": "Заключването с парола е премахнато и зададената парола е премахната.",
+    "level": "Ниво на промяна",
+    "level_title": "Права на посетителите",
+    "cron_title": "Задаване на тестова честота",
+    "cron_rules": "Правило на Cron",
+    "cron_next_test": "Следващ тест:",
+    "time_title": "Покажете тестовете от последните ...",
+    "download": "Изтегляне",
+    "pause_title": "Тестове за скорост - пауза за...",
+    "hours": "Часове",
+    "pause": "Пауза",
+    "release_manually": "Освобождаване ръчно",
+    "language": "Промяна на езика",
+    "view_title": "Промяна на изгледа"
+  },
+  "header": {
+    "title": "MySpeed",
+    "running_tooltip": "Извършване на тест за скорост",
+    "start_tooltip": "Стартиране на теста за скорост",
+    "new_update": "Налична е актуализация",
+    "download": "Изтегляне",
+    "paused": "В момента тестовете за скорост са спрени. Моля, продължете, ако желаете да се включите.",
+    "running": "Тестът на скоростта вече е в ход. Моля, изчакайте малко.",
+    "admin_login": "Вход за администратор",
+    "beta": {
+      "title": "Бета версия",
+      "description": "Тази функция все още е в бета фаза. Ако откриете някакви грешки, моля, докладвайте за тях <Link>тук</Link>."
+    }
+  },
+  "storage": {
+    "speedtests": "Speedtests",
+    "configuration": "Конфигурация",
+    "stored_tests": "Съхранени тестове",
+    "tests": "Тестове",
+    "export_tests": "Тестове за износ",
+    "tests_exported": "Тестовете са експортирани",
+    "csv": "CSV",
+    "json": "JSON",
+    "import_tests": "Тестове за внос",
+    "tests_imported": "Тестовете са импортирани",
+    "import_test_error": "Възникна грешка при импортирането на тестовете",
+    "import_config_error": "Възникна грешка при импортирането на конфигурацията",
+    "export": "Експорт",
+    "import": "Внос",
+    "clear_history": "Изчистване на историята",
+    "history_cleared": "Историята е изчистена",
+    "delete": "Изтриване на",
+    "confirm_delete": "Да, изтрийте",
+    "export_settings": "Настройки за експортиране",
+    "import_settings": "Настройки за импортиране",
+    "factory_reset": "Възстановяване на фабричните настройки",
+    "factory_reset_completed": "Възстановяването на фабричните настройки е завършено",
+    "reset": "Нулиране на",
+    "confirm_reset": "Да, нулиране",
+    "settings_exported": "Настройките са експортирани",
+    "settings_imported": "Настройките са импортирани"
+  },
+  "latest": {
+    "ping": "Ping",
+    "ping_unit": "ms",
+    "down": "Изтегляне",
+    "speed_unit": "Mbit/s",
+    "up": "Качване на",
+    "latest": "Последен тест",
+    "before": "от"
+  },
+  "info": {
+    "credits": "<MSpeed>MySpeed</MSpeed> е проект с отворен код, предоставен от GNMYT. Оставете звезда в <Github>GitHub</Github> или <Donate>дарете средства,</Donate> за да подкрепите проекта.",
+    "recommendations_error": "Трябва да направите поне 10 теста, за да може да се определи средната стойност. Няма значение дали тестовете са извършени ръчно или автоматично.",
+    "recommendations_info": "Въз основа на резултатите от последните 10 теста беше установено, че оптималният пинг е <Bold>{{ping}} ms</Bold>, а изтеглянето е <Bold>{{down}}. Mbit/s</Bold>, а качването при <Bold>{{up}}. Mbit/s</Bold>. Най-добре е да използвате договора си за интернет като ориентир и да го приемете само ако съвпада с него.",
+    "update": "Налична е актуализация на версия {{version}}. Вижте <Changes>промените</Changes> и <DLLink>изтеглете актуализацията</DLLink>.",
+    "down": {
+      "title": "Скорост на изтегляне",
+      "description": "Скоростта на изтегляне влияе на вашето сърфиране. Колкото повече имате, толкова по-бързо компютърът ви може да получава данни."
+    },
+    "ping": {
+      "title": "Ping",
+      "description": "Пингът показва колко бързо отговаря съответният доставчик. Колкото по-кратко е времето, толкова по-добре."
+    },
+    "up": {
+      "title": "Скорост на качване",
+      "description": "Скоростта на качване влияе на вашето сърфиране. Колкото повече имате, толкова по-бързо компютърът ви може да изпраща данни."
+    },
+    "latest": {
+      "title": "Последен тест",
+      "description": "Това е часът, който показва кога е извършен последният тест. В този случай последният тест е проведен на <Bold>{{date}}</Bold> в <Bold>{{time}}</Bold>."
+    }
+  },
+  "time": {
+    "now": "Точно сега",
+    "seconds": "{{seconds}} секунди",
+    "minute": "1 минута",
+    "minutes": "{{minutes}} минути",
+    "hour": "1 час",
+    "hours": "{{hours}} часове",
+    "on": "На адрес",
+    "at": "На адрес"
+  },
+  "test": {
+    "not_available": "В момента няма налични тестове",
+    "no_latest": "Няма текущ тест. Моля, извършете тест или изчакайте да бъде извършен следващият тест.",
+    "loading_more": "Зареждане на още тестове...",
+    "no_more_tests": "Няма повече тестове за зареждане",
+    "unknown_error": "Неизвестна грешка:",
+    "failed": "Тестът е неуспешен",
+    "recheck": "Моля, проверете, доколкото е възможно, дали това се случва по-често.",
+    "delete": "Изтриване на теста",
+    "deleted": "Тестът е изтрит",
+    "average": {
+      "title": "Средна скорост",
+      "description": "<Bold>{{amount}}</Bold> Тестовете показаха, че на <Bold>{{date}}</Bold> средната скорост на изтегляне от <Bold>{{down}} Mbit/s</Bold> и скорост на качване от <Bold>{{up}} Mbit/s</Bold>. Тестовете продължиха средно <Bold>{{duration}} секунди</Bold>."
+    },
+    "result": {
+      "title": "Резултат от теста",
+      "description": "При <Link>този тест</Link> беше постигната максимална скорост на изтегляне от <Bold>{{down}} Mbps</Bold> и максимална скорост на качване от <Bold>{{up}} Mbps</Bold>. Той беше създаден <Bold>{{type}}</Bold> и е отнел <Bold>{{duration}} секунди</Bold>.",
+      "from_you": "от вас",
+      "automatic": "автоматичен"
+    },
+    "overview": {
+      "title": "Преглед на теста за последната {{amount}}",
+      "1": "24 часа",
+      "2": "2 дни",
+      "3": "7 дни",
+      "4": "30 дни"
+    }
+  },
+  "errors": {
+    "network_unreachable": "Интернет връзката е била нестабилна по време на теста",
+    "took_too_long": "Тестът отне твърде много време и беше отменен",
+    "no_permission": "MySpeed няма разрешение да стартира този тест",
+    "resource_unavailable": "Тестът не може да бъде извършен, защото ресурсът е временно недостъпен",
+    "no_route": "Тестът не може да бъде извършен, защото не съществува маршрут към хоста",
+    "connection_refused": "Тестът не може да бъде извършен, защото връзката е отхвърлена",
+    "timed_out": "Интернет връзката е била нестабилна по време на теста",
+    "config": "Конфигурационният файл не може да бъде зареден",
+    "invalid_view": "Невалиден изглед"
+  },
+  "statistics": {
+    "overview": {
+      "total_title": "Общо тестове",
+      "total_description": "Броят на извършените тестове",
+      "failed_title": "Неуспешни тестове",
+      "failed_description": "Брой неуспешни тестове",
+      "average_title": "Средна продължителност",
+      "average_description": "Средна продължителност на тестовете"
+    },
+    "failed": {
+      "title": "Неуспешни тестове",
+      "success": "Успешен",
+      "failed": "Неуспешен",
+      "label": "Тестове"
+    },
+    "speed": {
+      "title": "Скорост"
+    },
+    "manual": {
+      "title": "Ръчни тестове",
+      "yes": "Ръчно създадени",
+      "no": "Автоматично създадени"
+    },
+    "duration": {
+      "title": "Продължителност на теста",
+      "label": "Номер"
+    },
+    "values": {
+      "min": "Най-ниска",
+      "max": "Най-висока",
+      "avg": "Средно",
+      "down": "Стойности за изтегляне",
+      "up": "Качване на стойности"
+    }
+  },
+  "nodes": {
+    "add": "Добавяне на сървър",
+    "create": "Добавяне на",
+    "this_server": "Този сървър",
+    "created": "Сървърът е добавен успешно",
+    "password_required": "За този възел е необходима парола",
+    "update_password": "Моля, актуализирайте паролата на този възел",
+    "password_outdated": "Паролата е остаряла",
+    "password_updated": "Паролата е актуализирана успешно",
+    "preview_active": "Добавянето и изтриването на сървъри е забранено по време на демо режим.",
+    "placeholder": {
+      "name": "Екземпляр на MySpeed",
+      "url": "https://вашия-сървър.bg"
+    },
+    "group": {
+      "name": "Име на сървъра",
+      "url": "Адрес на сървъра"
+    },
+    "delete": {
+      "title": "Изтриване на сървър",
+      "description": "Сървърът <Bold>{{name}}</Bold> (#{{id}}) е изтрит. Това действие не може да бъде отменено. Искате ли да продължите?",
+      "yes": "Да, изтрийте",
+      "success": "Сървърът е успешно изтрит"
+    },
+    "messages": {
+      "not_reachable": "Сървърът не е достъпен",
+      "password_changed": "Паролата е променена",
+      "tests_pending": "Очакват се резултати от тестовете"
+    }
+  },
+  "preview": {
+    "title": "Режим на демонстрация",
+    "info": "DEMO",
+    "description": "В момента сте в демо режим. Някои функции са деактивирани и някои настройки не могат да бъдат променяни. Ако искате да използвате всички функции, можете да <Link>инсталирате MySpeed</Link> на собствения си сървър."
+  },
+  "integrations": {
+    "none_active": "Тази интеграция не е активна. <br/><Bold>Добавяне на</Bold>",
+    "preview_active": "Интеграциите са деактивирани по време на демо режим.",
+    "display_name": "Име на интеграцията",
+    "create": "Добавяне на",
+    "activity": {
+      "never_executed": "Никога не е изпълняван",
+      "last_run": "Последно преди "
+    },
+    "discord": {
+      "title": "Discord",
+      "fields": {
+        "url": "URL адрес на Webhook",
+        "url_placeholder": "https://discord.com/api/webhooks/...",
+        "display_name": "Показвайте името",
+        "display_name_placeholder": "Известие за MySpeed",
+        "error_message": "Съобщение за грешка",
+        "error_message_placeholder": "Грешка: %error%",
+        "send_failed": "Изпращане на съобщения за грешки",
+        "send_finished": "Броят на извършените тестове",
+        "finished_message": "Завършено съобщение",
+        "finished_message_placeholder": "%ping% ms, %download% Mbit/s, %upload% Mbit/s"
+      }
+    },
+    "gotify": {
+      "title": "Gotify",
+      "fields": {
+        "url": "URL адрес на сървъра",
+        "key": "Токен на приложението",
+        "priority": "Приоритет",
+        "error_message": "Съобщение за грешка",
+        "error_message_placeholder": "Грешка: %error%",
+        "send_failed": "Изпращане на съобщения за грешки",
+        "send_finished": "Изпратете попълнен",
+        "finished_message": "Завършено съобщение",
+        "finished_message_placeholder": "%ping% ms, %download% Mbit/s, %upload% Mbit/s"
+      }
+    },
+    "pushover": {
+      "title": "Pushover",
+      "fields": {
+        "token": "Токен на приложение",
+        "user_key": "Ключ на потребителя",
+        "error_message": "Съобщение за грешка",
+        "error_message_placeholder": "Грешка: %error%",
+        "send_failed": "Изпращане на съобщения за грешки",
+        "send_finished": "Изпращане на завършени съобщения",
+        "finished_message": "Завършено съобщение",
+        "finished_message_placeholder": "%ping% ms, %download% Mbps, %upload% Mbps"
+      }
+    },
+    "healthChecks": {
+      "title": "HealthChecks",
+      "fields": {
+        "url": "URL адрес за здравни прегледи",
+        "url_placeholder": "https://hc-ping.com/<uuid>"
+      }
+    },
+    "ntfy": {
+      "title": "ntfy",
+      "fields": {
+        "url": "URL на сървъра",
+        "url_placeholder": "https://ntfy.sh",
+        "topic": "Тема",
+        "topic_placeholder": "myspeed-alerts",
+        "token": "Достъпен токен",
+        "token_placeholder": "tk_... (по избор, за защитени сървъри)",
+        "title": "Заглавие на известие",
+        "title_placeholder": "MySpeed (по избор)",
+        "tags": "Етикети",
+        "tags_placeholder": "warning,satellite (разделени със запетая)",
+        "priority": "Приоритет по подразбиране (1-5)",
+        "priority_placeholder": "3",
+        "error_priority": "Приоритет при грешка (1-5)",
+        "error_priority_placeholder": "5",
+        "error_message": "Съобщение за грешка",
+        "error_message_placeholder": "Грешка: %error%",
+        "send_failed": "Изпращане на съобщения за грешки",
+        "send_finished": "Изпратете попълнен",
+        "finished_message": "Завършено съобщение",
+        "finished_message_placeholder": "%ping% ms, %download% Mbit/s, %upload% Mbit/s"
+      }
+    },
+    "telegram": {
+      "title": "Telegram",
+      "fields": {
+        "token": "Токен на бот",
+        "chat_id": "Идентификатор на чата",
+        "error_message": "Съобщение за грешка",
+        "error_message_placeholder": "Грешка: %error%",
+        "send_failed": "Изпращане на съобщения за грешки",
+        "send_finished": "Изпратете попълнен",
+        "finished_message": "Завършено съобщение",
+        "finished_message_placeholder": "%ping% ms, %download% Mbit/s, %upload% Mbit/s"
+      }
+    },
+    "webhook": {
+      "title": "Webhook",
+      "fields": {
+        "url": "URL адрес на Webhook",
+        "url_placeholder": "https://вашия-сървър.bg/hook",
+        "send_started": "Започнато изпращане",
+        "send_failed": "Изпращане на съобщения за грешки",
+        "send_finished": "Изпратете попълнен",
+        "send_alive": "Изпращане на оживени съобщения",
+        "send_recommendations": "Изпращане на препоръки",
+        "send_config_updates": "Изпращане на актуализации на конфигурацията"
+      }
+    }
+  },
+  "common": {
+    "back_to_top": "Върнете се в началото"
+  }
+}
