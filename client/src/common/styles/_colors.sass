@@ -1,0 +1,75 @@
+$dark-background: #0f1419
+$dark-light-gray: #2a3441
+$dark-dark-gray: #1a2029
+$dark-darker-gray: #151b23
+$dark-white: #e7edf4
+$dark-subtext: #8b99ab
+
+$light-background: #f8fafc
+$light-light-gray: #e2e8f0
+$light-dark-gray: #ffffff
+$light-darker-gray: #f1f5f9
+$light-white: #1e293b
+$light-subtext: #64748b
+
+$blue: #3b82f6
+$orange: #f59e0b
+$green: #10b981
+$red: #ef4444
+
+$cyan: #06b6d4
+$purple: #8b5cf6
+$pink: #ec4899
+$amber: #f59e0b
+
+:root
+  --background: #{$dark-background}
+  --light-gray: #{$dark-light-gray}
+  --dark-gray: #{$dark-dark-gray}
+  --darker-gray: #{$dark-darker-gray}
+  --white: #{$dark-white}
+  --subtext: #{$dark-subtext}
+  --blue: #{$blue}
+
+  --accent-primary: #{$green}
+  --accent-secondary: #{$cyan}
+  --accent-tertiary: #{$purple}
+  --accent-warning: #{$orange}
+  --accent-danger: #{$red}
+
+  --glass-bg: rgba(26, 32, 41, 0.6)
+
+  --chart-download: #{$cyan}
+  --chart-upload: #{$purple}
+  --chart-ping: #{$amber}
+  --chart-average: #{$pink}
+  --chart-grid: rgba(42, 52, 65, 0.6)
+  --chart-tooltip-bg: #{$dark-darker-gray}
+  --chart-tooltip-border: #{$dark-light-gray}
+
+[data-theme="light"]
+  --background: #{$light-background}
+  --light-gray: #{$light-light-gray}
+  --dark-gray: #{$light-dark-gray}
+  --darker-gray: #{$light-darker-gray}
+  --white: #{$light-white}
+  --subtext: #{$light-subtext}
+
+  --glass-bg: rgba(255, 255, 255, 0.85)
+
+  --chart-grid: rgba(226, 232, 240, 0.8)
+  --chart-tooltip-bg: #{$light-dark-gray}
+  --chart-tooltip-border: #{$light-light-gray}
+
+$background: var(--background)
+$light-gray: var(--light-gray)
+$dark-gray: var(--dark-gray)
+$darker-gray: var(--darker-gray)
+$white: var(--white)
+$subtext: var(--subtext)
+
+$accent-primary: var(--accent-primary)
+$accent-secondary: var(--accent-secondary)
+$accent-tertiary: var(--accent-tertiary)
+$accent-warning: var(--accent-warning)
+$accent-danger: var(--accent-danger)
