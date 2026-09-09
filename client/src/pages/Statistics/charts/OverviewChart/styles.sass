@@ -1,0 +1,61 @@
+@use "@/common/styles/colors" as *
+
+.overview-items
+  display: flex
+  justify-content: center
+  flex-direction: column
+  width: 100%
+  overflow-y: clip
+
+.overview-item
+  display: flex
+  justify-content: space-between
+
+.overview-item .info-area
+  display: flex
+  justify-content: center
+  align-content: center
+  align-items: center
+  gap: 1rem
+
+  & svg
+    width: 2.25rem
+    height: 2.25rem
+    color: $subtext
+
+.overview-item .info-area .text-area
+  & h2
+    margin: 0
+    color: $white
+    font-size: 1rem
+    font-weight: 600
+  & p
+    margin: 0
+    font-weight: 500
+    color: $subtext
+    font-size: 0.9rem
+
+.overview-item h2
+  color: $accent-primary
+  font-weight: 700
+
+@media screen and (max-width: 1500px)
+  .overview-item
+    flex-wrap: wrap
+    flex-direction: row
+
+@media screen and (max-width: 1400px)
+  .info-area svg
+    display: none
+  .overview-item .info-area h2
+    display: inline-block
+    width: 15rem
+    white-space: nowrap
+    overflow: hidden !important
+    text-overflow: ellipsis
+  .overview-item .info-area .text-area p
+    display: none
+
+@media screen and (max-width: 1000px)
+  .overview-item .info-area h2
+    width: 10rem
