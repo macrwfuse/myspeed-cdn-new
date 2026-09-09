@@ -87,25 +87,41 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates tar gzip unzip && \
     rm -rf /var/lib/apt/lists/*
 
+# ── 测速 CLI 来源: 优先本项目 Release 内置资产(稳定), 失败回退官方/代理源 ──
+# 构建时可用 --build-arg CLI_REPO=xxx/yyy --build-arg CLI_TAG=vX.Y.Z 覆盖
+ARG CLI_REPO=macrwfuse/myspeed-cdn-new
+ARG CLI_TAG=v1.1.1
+
 RUN mkdir -p /bins
 
-# Ookla Speedtest CLI v1.2.0
-RUN curl -fsSL "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz" -o /tmp/ookla.tgz && \
-    tar -xzf /tmp/ookla.tgz -C /bins speedtest && \
-    chmod +x /bins/speedtest && \
-    rm /tmp/ookla.tgz
+# Ookla Speedtest CLI v1.2.0 (linux x86_64)
+RUN set -eux; \
+    for url in \
+      "https://github.com/${CLI_REPO}/releases/download/${CLI_TAG}/ookla-speedtest-1.2.0-linux-x86_64.tgz" \
+      "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz"; do \
+      if curl -fsSL --retry 2 "$url" -o /tmp/ookla.tgz; then echo "ookla from $url"; break; fi; \
+    done; \
+    tar -xzf /tmp/ookla.tgz -C /bins speedtest && chmod +x /bins/speedtest && rm /tmp/ookla.tgz
 
-# LibreSpeed CLI v1.0.10
-RUN curl -fsSL "https://gh.xxooo.cf/https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_linux_amd64.tar.gz" -o /tmp/libre.tar.gz && \
-    tar -xzf /tmp/libre.tar.gz -C /bins librespeed-cli && \
-    chmod +x /bins/librespeed-cli && \
-    rm /tmp/libre.tar.gz
+# LibreSpeed CLI v1.0.10 (linux amd64)
+RUN set -eux; \
+    for url in \
+      "https://github.com/${CLI_REPO}/releases/download/${CLI_TAG}/librespeed-cli_1.0.10_linux_amd64.tar.gz" \
+      "https://gh.xxooo.cf/https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_linux_amd64.tar.gz" \
+      "https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_linux_amd64.tar.gz"; do \
+      if curl -fsSL --retry 2 "$url" -o /tmp/libre.tar.gz; then echo "libre from $url"; break; fi; \
+    done; \
+    tar -xzf /tmp/libre.tar.gz -C /bins librespeed-cli && chmod +x /bins/librespeed-cli && rm /tmp/libre.tar.gz
 
-# Cloudflare cfspeedtest v2.2.2
-RUN curl -fsSL "https://gh.xxooo.cf/https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-x86_64-unknown-linux-gnu.tar.gz" -o /tmp/cf.tar.gz && \
-    tar -xzf /tmp/cf.tar.gz -C /bins cfspeedtest && \
-    chmod +x /bins/cfspeedtest && \
-    rm /tmp/cf.tar.gz
+# Cloudflare cfspeedtest v2.2.2 (linux x86_64)
+RUN set -eux; \
+    for url in \
+      "https://github.com/${CLI_REPO}/releases/download/${CLI_TAG}/cfspeedtest-x86_64-unknown-linux-gnu.tar.gz" \
+      "https://gh.xxooo.cf/https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-x86_64-unknown-linux-gnu.tar.gz" \
+      "https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-x86_64-unknown-linux-gnu.tar.gz"; do \
+      if curl -fsSL --retry 2 "$url" -o /tmp/cf.tar.gz; then echo "cfspeedtest from $url"; break; fi; \
+    done; \
+    tar -xzf /tmp/cf.tar.gz -C /bins cfspeedtest && chmod +x /bins/cfspeedtest && rm /tmp/cf.tar.gz
 
 # ─────────────────────────────────────────────
 # 阶段 4：最终镜像
