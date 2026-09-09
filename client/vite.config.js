@@ -1,0 +1,41 @@
+import {defineConfig, createLogger} from "vite";
+import react from "@vitejs/plugin-react";
+import {VitePWA} from "vite-plugin-pwa";
+import * as path from "node:path";
+
+const logger = createLogger();
+const originalError = logger.error.bind(logger);
+logger.error = (msg, options) => {
+    if (msg.includes('http proxy error') && (msg.includes('AbortError') || msg.includes('cancelled') || msg.includes('AggregateError'))) return;
+    originalError(msg, options);
+};
+
+export default defineConfig({
+    customLogger: logger,
+    plugins: [
+        VitePWA({injectRegister: "auto", manifest: false}),
+        react()
+    ],
+    build: {
+        outDir: "build",
+        chunkSizeWarningLimit: 1600,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules'))
+                        return id.includes('@fortawesome') ? 'icons' : 'vendor';
+                }
+            }
+        }
+    },
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "./src"),
+        },
+    },
+    server: {
+        proxy: {
+            "/api": "http://localhost:5216/"
+        }
+    }
+});
