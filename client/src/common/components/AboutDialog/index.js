@@ -1,0 +1,1 @@
+export {AboutDialog as default} from "./AboutDialog.jsx";
