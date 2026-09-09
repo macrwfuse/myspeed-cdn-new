@@ -1,0 +1,68 @@
+@use "@/common/styles/colors" as *
+
+.dropdown-select-container
+  position: relative
+  display: flex
+  justify-content: flex-end
+  outline: none
+
+.dropdown-select-btn
+  display: flex
+  align-items: center
+  gap: 0.6rem
+  padding: 0.7rem 1.125rem
+  background-color: $darker-gray
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  color: $subtext
+  font-size: 1rem
+  font-weight: 500
+  cursor: pointer
+  transition: all 0.15s ease
+
+  &:hover
+    border-color: $accent-primary
+    color: $accent-primary
+
+  svg
+    font-size: 1rem
+
+.dropdown-select-chevron
+  transition: transform 0.2s ease
+  margin-left: 0.25rem
+
+  &.rotated
+    transform: rotate(180deg)
+
+.dropdown-select-menu
+  position: absolute
+  top: auto
+  bottom: calc(100% + 0.5rem)
+  right: 0
+  min-width: 13rem
+  background-color: $darker-gray
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3)
+  z-index: 1000
+  overflow: hidden
+
+.dropdown-select-item
+  display: flex
+  align-items: center
+  gap: 0.875rem
+  padding: 0.875rem 1.125rem
+  color: $subtext
+  cursor: pointer
+  transition: all 0.15s ease
+
+  &:hover
+    background-color: $light-gray
+    color: $white
+
+  svg
+    width: 1.2rem
+    font-size: 1.1rem
+
+  span
+    font-size: 1rem
