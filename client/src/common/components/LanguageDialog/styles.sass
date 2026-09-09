@@ -1,0 +1,37 @@
+@use "@/common/styles/colors" as *
+
+.language-dialog
+  width: 22rem
+
+  .dialog-main
+    display: block
+
+.language-content
+  margin: 1rem 0.5rem
+  user-select: none
+
+.language-list
+  max-height: 22rem
+  overflow-y: auto
+  padding-right: 0.25rem
+
+  &::-webkit-scrollbar
+    width: 0.4rem
+
+  &::-webkit-scrollbar-track
+    background: transparent
+
+  &::-webkit-scrollbar-thumb
+    background: $light-gray
+    border-radius: 0.25rem
+
+    &:hover
+      background: $subtext
+
+@media screen and (max-height: 500px)
+  .language-list
+    max-height: 14rem
+
+@media screen and (max-width: 425px)
+  .language-dialog
+    width: 90vw
