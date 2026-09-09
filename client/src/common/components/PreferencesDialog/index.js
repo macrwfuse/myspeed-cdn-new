@@ -1,0 +1,1 @@
+export {PreferencesDialog as default} from "./PreferencesDialog.jsx";
