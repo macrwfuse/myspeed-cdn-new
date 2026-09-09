@@ -1,0 +1,102 @@
+@use "@/common/styles/colors" as *
+
+.password-dialog
+  width: 28rem
+  max-width: 95vw
+
+  .dialog-main
+    display: block
+
+.password-content
+  margin: 1rem 0.5rem
+  display: flex
+  flex-direction: column
+  gap: 1.25rem
+  user-select: none
+
+.password-section
+  display: flex
+  justify-content: space-between
+  align-items: center
+  gap: 1rem
+
+.password-label
+  display: flex
+  align-items: center
+  gap: 0.6rem
+  flex-shrink: 0
+
+  svg
+    font-size: 1rem
+    width: 1rem
+    color: $subtext
+
+  h3
+    font-size: 1rem
+    font-weight: 500
+    color: $subtext
+    margin: 0
+
+.password-input-wrapper
+  position: relative
+  display: flex
+  align-items: center
+  width: 14rem
+
+  .dialog-input
+    width: 100%
+    padding-right: 2.5rem
+    height: 2.5rem
+    box-sizing: border-box
+    margin: 0
+
+.password-toggle
+  position: absolute
+  right: 0.75rem
+  background: none
+  border: none
+  color: $subtext
+  cursor: pointer
+  padding: 0.5rem
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: color 0.15s ease
+
+  &:hover
+    color: $white
+
+.access-section
+  display: flex
+  flex-direction: column
+  gap: 0.75rem
+  padding-top: 1.25rem
+  border-top: 1px solid $light-gray
+
+.access-label
+  display: flex
+  align-items: center
+  gap: 0.6rem
+  margin-bottom: 0.25rem
+
+  svg
+    font-size: 1rem
+    width: 1rem
+    color: $subtext
+
+  h3
+    font-size: 1rem
+    font-weight: 500
+    color: $subtext
+    margin: 0
+
+@media screen and (max-width: 520px)
+  .password-section
+    flex-direction: column
+    align-items: flex-start
+    gap: 0.5rem
+
+  .password-input-wrapper
+    max-width: 100%
+    width: 100%
+
