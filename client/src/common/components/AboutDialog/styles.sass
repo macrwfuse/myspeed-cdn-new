@@ -1,0 +1,110 @@
+@use "@/common/styles/colors" as *
+
+.about-dialog
+  width: 28rem
+  max-width: 95vw
+
+  .dialog-main
+    display: block
+
+.about-title
+  display: inline-flex
+  align-items: center
+  gap: 0.75rem
+  min-width: 0
+
+  img
+    width: 28px
+    height: 28px
+    border-radius: 0.4rem
+    flex-shrink: 0
+
+.about-content
+  margin: 1rem 0 0
+  display: flex
+  flex-direction: column
+  gap: 1.25rem
+  user-select: none
+
+.about-version
+  padding: 0.2rem 0.55rem
+  border-radius: 999px
+  background-color: $darker-gray
+  border: 1px solid $light-gray
+  color: $subtext
+  font-size: 0.85rem
+  font-weight: 600
+  line-height: 1
+  white-space: nowrap
+
+.about-description
+  margin: 0
+  font-size: 1rem
+  font-weight: 500
+  color: $subtext
+  line-height: 1.55
+
+.about-links
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 0.65rem
+
+.about-dialog .about-link
+  display: flex
+  align-items: center
+  gap: 0.75rem
+  padding: 0.8rem 0.9rem
+  background-color: $darker-gray
+  border: 1px solid $light-gray
+  border-radius: 0.7rem
+  color: $subtext
+  text-decoration: none
+  font-size: 1rem
+  font-weight: 500
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease
+
+  svg
+    width: 1.2rem
+    height: 1.2rem
+    padding: 0.45rem
+    border-radius: 0.5rem
+    background-color: $dark-gray
+    color: $subtext
+    flex-shrink: 0
+    transition: background-color 0.15s ease, color 0.15s ease
+
+  &:hover
+    background-color: $light-gray
+    border-color: $light-gray
+    color: $white
+
+    svg
+      background-color: $darker-gray
+      color: $white
+
+.about-footer
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 0.4rem
+  padding-top: 1.25rem
+  font-size: 0.95rem
+  font-weight: 500
+  color: $subtext
+  border-top: 1px solid $light-gray
+
+  svg
+    color: $accent-danger
+    font-size: 0.9rem
+
+  a
+    color: $subtext
+    text-decoration: none
+    font-weight: 600
+
+    &:hover
+      color: $white
+      text-decoration: underline
+
+.about-dialog .about-footer a:hover
+  color: $white
