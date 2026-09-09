@@ -1,0 +1,381 @@
+name: Build Binaries
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      release_id:
+        required: true
+        type: string
+
+jobs:
+  build-windows:
+    name: "Windows (x64)"
+    runs-on: windows-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bin-path: bun-bin
+          bun-version: latest
+
+      - name: Install client dependencies
+        working-directory: client
+        run: bun install
+
+      - name: Build client
+        working-directory: client
+        run: bun run build
+
+      - name: Move build folder
+        run: Move-Item -Path client/build -Destination .
+
+      - name: Install server dependencies
+        run: bun install
+
+      - name: Generate migrations
+        run: bun run generate-migrations
+
+      - name: Generate integrations
+        run: bun run generate-integrations
+
+      - name: Generate client embed
+        run: bun run generate-client-embed
+
+      - name: Compile binary
+        run: bun build --compile --compile-autoload-package-json --external pg-hstore --external pg --target=bun-windows-x64 server/index.js --outfile MySpeed-CN.exe
+
+      - name: Download speedtest binaries
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path bin
+
+          # Ookla Speedtest CLI v1.2.0
+          Invoke-WebRequest -Uri "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win64.zip" -OutFile ookla.zip
+          Expand-Archive -Path ookla.zip -DestinationPath bin -Force
+          Remove-Item ookla.zip
+
+          # LibreSpeed CLI v1.0.10
+          Invoke-WebRequest -Uri "https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_windows_amd64.zip" -OutFile libre.zip
+          Expand-Archive -Path libre.zip -DestinationPath bin -Force
+          Remove-Item libre.zip
+
+          # Cloudflare cfspeedtest v2.2.2
+          Invoke-WebRequest -Uri "https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-x86_64-pc-windows-msvc.zip" -OutFile cf.zip
+          Expand-Archive -Path cf.zip -DestinationPath bin -Force
+          Remove-Item cf.zip
+
+          Write-Host "bin/ contents:"
+          Get-ChildItem bin
+
+      - name: Create release archive
+        shell: pwsh
+        run: |
+          Compress-Archive -Path MySpeed-CN.exe, bin -DestinationPath MySpeed-CN-windows-x64.zip
+          Write-Host "Archive created: MySpeed-CN-windows-x64.zip"
+
+      - name: Upload standalone to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ inputs.release_id }},
+              name: 'MySpeed-CN.exe',
+              data: fs.readFileSync('MySpeed-CN.exe')
+            });
+
+      - name: Upload archive to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ inputs.release_id }},
+              name: 'MySpeed-CN-windows-x64.zip',
+              data: fs.readFileSync('MySpeed-CN-windows-x64.zip')
+            });
+
+  build-linux:
+    name: "Linux (${{ matrix.arch }})"
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            target: bun-linux-x64
+            runner: ubuntu-latest
+            artifact_name: MySpeed-CN-linux-x64
+            ookla_suffix: linux-x86_64.tgz
+            libre_suffix: linux_amd64.tar.gz
+            cf_suffix: x86_64-unknown-linux-gnu.tar.gz
+          - arch: arm64
+            target: bun-linux-arm64
+            runner: ubuntu-24.04-arm
+            artifact_name: MySpeed-CN-linux-arm64
+            ookla_suffix: linux-aarch64.tgz
+            libre_suffix: linux_arm64.tar.gz
+            cf_suffix: aarch64-unknown-linux-gnu.tar.gz
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install client dependencies
+        working-directory: client
+        run: bun install
+
+      - name: Build client
+        working-directory: client
+        run: bun run build
+
+      - name: Move build folder
+        run: mv client/build .
+
+      - name: Install server dependencies
+        run: bun install
+
+      - name: Generate migrations
+        run: bun run generate-migrations
+
+      - name: Generate integrations
+        run: bun run generate-integrations
+
+      - name: Generate client embed
+        run: bun run generate-client-embed
+
+      - name: Compile binary
+        run: bun build --compile --compile-autoload-package-json --external pg-hstore --external pg --target=${{ matrix.target }} server/index.js --outfile MySpeed-CN
+
+      - name: Download speedtest binaries
+        run: |
+          mkdir -p bin
+
+          # Ookla Speedtest CLI v1.2.0
+          curl -fsSL "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-${{ matrix.ookla_suffix }}" -o /tmp/ookla.tgz
+          tar -xzf /tmp/ookla.tgz -C bin speedtest
+          chmod +x bin/speedtest
+          rm /tmp/ookla.tgz
+
+          # LibreSpeed CLI v1.0.10
+          curl -fsSL "https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
+          tar -xzf /tmp/libre.tar.gz -C bin librespeed-cli
+          chmod +x bin/librespeed-cli
+          rm /tmp/libre.tar.gz
+
+          # Cloudflare cfspeedtest v2.2.2
+          curl -fsSL "https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-${{ matrix.cf_suffix }}" -o /tmp/cf.tar.gz
+          tar -xzf /tmp/cf.tar.gz -C bin cfspeedtest
+          chmod +x bin/cfspeedtest
+          rm /tmp/cf.tar.gz
+
+          ls -la bin/
+
+      - name: Create release archive
+        run: |
+          tar -czf ${{ matrix.artifact_name }}.tar.gz MySpeed-CN bin/
+          ls -lh ${{ matrix.artifact_name }}.tar.gz
+
+      - name: Upload standalone to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ inputs.release_id }},
+              name: '${{ matrix.artifact_name }}',
+              data: fs.readFileSync('MySpeed-CN')
+            });
+
+      - name: Upload archive to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ inputs.release_id }},
+              name: '${{ matrix.artifact_name }}.tar.gz',
+              data: fs.readFileSync('${{ matrix.artifact_name }}.tar.gz')
+            });
+
+  build-macos:
+    name: "macOS (${{ matrix.arch }})"
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            target: bun-darwin-x64
+            artifact_name: MySpeed-CN-macos-x64
+            libre_suffix: darwin_amd64.tar.gz
+          - arch: arm64
+            target: bun-darwin-arm64
+            artifact_name: MySpeed-CN-macos-arm64
+            libre_suffix: darwin_arm64.tar.gz
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install client dependencies
+        working-directory: client
+        run: bun install
+
+      - name: Build client
+        working-directory: client
+        run: bun run build
+
+      - name: Move build folder
+        run: mv client/build .
+
+      - name: Install server dependencies
+        run: bun install
+
+      - name: Generate migrations
+        run: bun run generate-migrations
+
+      - name: Generate integrations
+        run: bun run generate-integrations
+
+      - name: Generate client embed
+        run: bun run generate-client-embed
+
+      - name: Compile binary
+        run: bun build --compile --compile-autoload-package-json --external pg-hstore --external pg --target=${{ matrix.target }} server/index.js --outfile MySpeed-CN
+
+      - name: Download speedtest binaries
+        run: |
+          mkdir -p bin
+
+          # Ookla Speedtest CLI (macOS)：官方 1.2.0 macos 资产已下线(403)，先试 universal，再回退 1.1.1 x86_64 (arm64 经 Rosetta 运行)
+          for ookla_url in \
+            "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-macos-universal.tgz" \
+            "https://install.speedtest.net/app/cli/ookla-speedtest-1.1.1-macosx-x86_64.tgz"; do
+            if curl -fsSL --retry 3 -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" "$ookla_url" -o /tmp/ookla.tgz; then
+              echo "ookla download OK: $ookla_url"
+              break
+            fi
+            echo "ookla download failed: $ookla_url"
+          done
+          test -s /tmp/ookla.tgz || { echo "FATAL: Ookla macOS download failed"; exit 1; }
+          tar -xzf /tmp/ookla.tgz -C bin speedtest
+          chmod +x bin/speedtest
+          rm /tmp/ookla.tgz
+
+          # LibreSpeed CLI v1.0.10
+          curl -fsSL "https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
+          tar -xzf /tmp/libre.tar.gz -C bin librespeed-cli
+          chmod +x bin/librespeed-cli
+          rm /tmp/libre.tar.gz
+
+          # Cloudflare cfspeedtest v2.2.2 (universal binary)
+          curl -fsSL "https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-universal-apple-darwin.tar.gz" -o /tmp/cf.tar.gz
+          tar -xzf /tmp/cf.tar.gz -C bin cfspeedtest
+          chmod +x bin/cfspeedtest
+          rm /tmp/cf.tar.gz
+
+          ls -la bin/
+
+      - name: Create release archive
+        run: |
+          tar -czf ${{ matrix.artifact_name }}.tar.gz MySpeed-CN bin/
+          ls -lh ${{ matrix.artifact_name }}.tar.gz
+
+      - name: Upload standalone to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ inputs.release_id }},
+              name: '${{ matrix.artifact_name }}',
+              data: fs.readFileSync('MySpeed-CN')
+            });
+
+      - name: Upload archive to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ inputs.release_id }},
+              name: '${{ matrix.artifact_name }}.tar.gz',
+              data: fs.readFileSync('${{ matrix.artifact_name }}.tar.gz')
+            });
+
+  build-zip:
+    name: "Source ZIP"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install client dependencies
+        working-directory: client
+        run: bun install
+
+      - name: Build client
+        working-directory: client
+        run: bun run build
+
+      - name: Move build folder
+        run: mv client/build .
+
+      - name: Install server dependencies
+        run: bun install
+
+      - name: Generate migrations
+        run: bun run generate-migrations
+
+      - name: Generate integrations
+        run: bun run generate-integrations
+
+      - name: Create zip archive
+        run: zip -r MySpeed-CN.zip build server package.json
+
+      - name: Upload to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ inputs.release_id }},
+              name: 'MySpeed-CN.zip',
+              data: fs.readFileSync('MySpeed-CN.zip')
+            });
