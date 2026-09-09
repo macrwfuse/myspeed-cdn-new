@@ -1,0 +1,132 @@
+@use "@/common/styles/colors" as *
+
+.frequency-dialog
+  width: 28rem
+  max-width: 95vw
+
+  .dialog-main
+    display: block
+
+.frequency-content
+  margin: 1rem 0.5rem
+  user-select: none
+
+.frequency-advanced-toggle
+  display: flex
+  align-items: center
+  justify-content: space-between
+  width: 100%
+  margin-top: 1rem
+  padding: 0.75rem 1rem
+  background: transparent
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  color: $subtext
+  font-size: 0.95rem
+  font-weight: 500
+  cursor: pointer
+  transition: all 0.15s ease
+
+  &:hover
+    background-color: $darker-gray
+
+  svg
+    font-size: 0.85rem
+    transition: transform 0.2s ease
+
+  &.frequency-advanced-open
+    border-bottom-left-radius: 0
+    border-bottom-right-radius: 0
+    border-bottom-color: transparent
+    background-color: $darker-gray
+
+    svg
+      transform: rotate(180deg)
+
+.frequency-custom
+  padding: 1rem
+  background-color: $darker-gray
+  border: 1px solid $light-gray
+  border-top: none
+  border-radius: 0 0 0.6rem 0.6rem
+
+.frequency-custom-input
+  display: flex
+  align-items: center
+  gap: 0.75rem
+
+  .dialog-input
+    flex: 1
+    height: 2.5rem
+    box-sizing: border-box
+    text-align: center
+    margin: 0
+
+.frequency-help
+  color: $subtext
+  font-size: 1.1rem
+  padding: 0.25rem
+  transition: color 0.15s ease
+
+  &:hover
+    color: $accent-primary
+
+.frequency-next-run
+  margin: 0.75rem 0 0
+  font-size: 0.85rem
+  color: $subtext
+  text-align: center
+
+.frequency-option
+  display: flex
+  align-items: center
+  gap: 0.875rem
+  margin-top: 1rem
+  padding: 0.875rem 1rem
+  border-radius: 0.75rem
+  border: 1px solid $light-gray
+  cursor: pointer
+  transition: all 0.15s ease
+
+  &:hover
+    background-color: $darker-gray
+
+.frequency-option-text
+  flex: 1
+
+  h3
+    margin: 0
+    font-size: 0.95rem
+    font-weight: 500
+    color: $subtext
+
+  p
+    margin: 0.15rem 0 0
+    font-size: 0.8rem
+    color: $subtext
+    opacity: 0.7
+
+.frequency-toggle
+  width: 42px
+  height: 24px
+  background-color: $light-gray
+  border-radius: 12px
+  position: relative
+  transition: background-color 0.2s ease
+  flex-shrink: 0
+
+.frequency-toggle-knob
+  width: 20px
+  height: 20px
+  background-color: $white
+  border-radius: 50%
+  position: absolute
+  top: 2px
+  left: 2px
+  transition: transform 0.2s ease
+
+.frequency-toggle-active
+  background-color: $accent-primary
+
+  .frequency-toggle-knob
+    transform: translateX(18px)
