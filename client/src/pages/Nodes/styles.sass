@@ -1,0 +1,76 @@
+@use "@/common/styles/colors" as *
+
+.node-page
+  min-height: 100vh
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: center
+  color: $white
+  text-align: center
+  margin: 0
+  gap: 0.7rem
+
+.node-page hr
+  margin: 0
+
+.node-area
+  display: flex
+  flex-direction: column
+  gap: 1.5rem
+  margin-top: 1rem
+
+.node-add
+  width: 53rem
+  display: flex
+  justify-content: center
+  align-items: center
+  border: 2px solid $light-gray
+  background-color: var(--glass-bg)
+  backdrop-filter: blur(16px)
+  -webkit-backdrop-filter: blur(16px)
+  border-radius: 15px
+  cursor: pointer
+  user-select: none
+  gap: 0.5rem
+
+.node-add h1
+  font-size: 22pt
+  font-weight: 700
+  color: $subtext
+  margin-right: 1rem
+
+.node-add svg
+  font-size: 22pt
+  margin-left: 1rem
+
+.node-add:hover
+  border: 2px solid $green
+
+  h1
+    color: $white
+
+.node-disabled
+  width: 53rem
+  border: 2px dashed $light-gray
+  background-color: var(--glass-bg)
+  backdrop-filter: blur(16px)
+  -webkit-backdrop-filter: blur(16px)
+  border-radius: 15px
+  cursor: not-allowed
+  user-select: none
+
+.node-disabled:hover
+  border: 2px dashed $light-gray
+
+  h1
+    color: $subtext
+
+@media screen and (max-width: 862px)
+  .node-add
+    width: calc(20vw + 11rem)
+    border-radius: 15px
+    cursor: pointer
+
+  .node-add h1
+    font-size: 22pt
