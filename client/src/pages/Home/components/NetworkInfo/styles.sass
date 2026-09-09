@@ -1,0 +1,56 @@
+@use "@/common/styles/colors" as *
+
+.network-info-area
+  display: flex
+  justify-content: center
+  gap: 2rem
+  margin-top: 1rem
+  margin-bottom: 1rem
+  padding: 1rem 2rem
+  background: var(--glass-bg)
+  backdrop-filter: blur(16px)
+  -webkit-backdrop-filter: blur(16px)
+  border: 1px solid $light-gray
+  border-radius: 1rem
+  flex-wrap: wrap
+
+.network-info-item
+  display: flex
+  align-items: center
+  gap: 0.5rem
+
+.network-icon
+  color: $accent-primary
+  font-size: 1rem
+
+.network-label
+  color: $subtext
+  font-size: 0.9rem
+  font-weight: 500
+
+.network-value
+  color: $white
+  font-size: 0.95rem
+  font-weight: 600
+
+  &.loading
+    color: $subtext
+    font-weight: 400
+
+  &.error
+    color: $accent-warning
+    font-weight: 400
+
+@media (max-width: 730px)
+  .network-info-area
+    flex-direction: column
+    align-items: center
+    gap: 0.75rem
+
+.network-retry
+  cursor: pointer
+  opacity: 0.6
+  transition: opacity 0.2s, transform 0.3s
+  &:hover
+    opacity: 1
+    transform: rotate(180deg)
