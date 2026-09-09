@@ -53,22 +53,13 @@ jobs:
       - name: Download speedtest binaries
         shell: pwsh
         run: |
+          # 从本项目 Release 内置 CLI 资产下载 (由人工上传至 CLI_TAG, 稳定可复现)
+          $base = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v1.1.1"
           New-Item -ItemType Directory -Force -Path bin
 
-          # Ookla Speedtest CLI v1.2.0
-          Invoke-WebRequest -Uri "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-win64.zip" -OutFile ookla.zip
-          Expand-Archive -Path ookla.zip -DestinationPath bin -Force
-          Remove-Item ookla.zip
-
-          # LibreSpeed CLI v1.0.10
-          Invoke-WebRequest -Uri "https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_windows_amd64.zip" -OutFile libre.zip
-          Expand-Archive -Path libre.zip -DestinationPath bin -Force
-          Remove-Item libre.zip
-
-          # Cloudflare cfspeedtest v2.2.2
-          Invoke-WebRequest -Uri "https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-x86_64-pc-windows-msvc.zip" -OutFile cf.zip
-          Expand-Archive -Path cf.zip -DestinationPath bin -Force
-          Remove-Item cf.zip
+          Invoke-WebRequest -Uri "$base/speedtest-ookla-1.2.0-win64.exe" -OutFile bin/speedtest.exe
+          Invoke-WebRequest -Uri "$base/librespeed-cli-1.0.10-windows-amd64.exe" -OutFile bin/librespeed-cli.exe
+          Invoke-WebRequest -Uri "$base/cfspeedtest-2.2.2-windows-x64.exe" -OutFile bin/cfspeedtest.exe
 
           Write-Host "bin/ contents:"
           Get-ChildItem bin
@@ -164,22 +155,24 @@ jobs:
 
       - name: Download speedtest binaries
         run: |
+          # 从本项目 Release v1.1.1 下载 (资产与官方同命名, 内置为项目自有资产, 稳定可复现)
+          base="https://github.com/$GITHUB_REPOSITORY/releases/download/v1.1.1"
           mkdir -p bin
 
           # Ookla Speedtest CLI v1.2.0
-          curl -fsSL "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-${{ matrix.ookla_suffix }}" -o /tmp/ookla.tgz
+          curl -fsSL "$base/ookla-speedtest-1.2.0-${{ matrix.ookla_suffix }}" -o /tmp/ookla.tgz
           tar -xzf /tmp/ookla.tgz -C bin speedtest
           chmod +x bin/speedtest
           rm /tmp/ookla.tgz
 
           # LibreSpeed CLI v1.0.10
-          curl -fsSL "https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
+          curl -fsSL "$base/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
           tar -xzf /tmp/libre.tar.gz -C bin librespeed-cli
           chmod +x bin/librespeed-cli
           rm /tmp/libre.tar.gz
 
           # Cloudflare cfspeedtest v2.2.2
-          curl -fsSL "https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-${{ matrix.cf_suffix }}" -o /tmp/cf.tar.gz
+          curl -fsSL "$base/cfspeedtest-${{ matrix.cf_suffix }}" -o /tmp/cf.tar.gz
           tar -xzf /tmp/cf.tar.gz -C bin cfspeedtest
           chmod +x bin/cfspeedtest
           rm /tmp/cf.tar.gz
@@ -228,10 +221,12 @@ jobs:
             target: bun-darwin-x64
             artifact_name: MySpeed-CN-macos-x64
             libre_suffix: darwin_amd64.tar.gz
+            ookla_asset: ookla-speedtest-go-1.7.0-macosx-x86_64.tar.gz
           - arch: arm64
             target: bun-darwin-arm64
             artifact_name: MySpeed-CN-macos-arm64
             libre_suffix: darwin_arm64.tar.gz
+            ookla_asset: ookla-speedtest-go-1.7.0-macosx-arm64.tar.gz
 
     steps:
       - name: Checkout project
@@ -270,31 +265,26 @@ jobs:
 
       - name: Download speedtest binaries
         run: |
+          # 从本项目 Release v1.1.1 下载。Ookla mac 官方源已 403, 使用兼容的
+          # speedtest-go 镜像(同为 Ookla 协议, arm64 原生无需 Rosetta)。
+          base="https://github.com/$GITHUB_REPOSITORY/releases/download/v1.1.1"
           mkdir -p bin
 
-          # Ookla Speedtest CLI (macOS)：官方 1.2.0 macos 资产已下线(403)，先试 universal，再回退 1.1.1 x86_64 (arm64 经 Rosetta 运行)
-          for ookla_url in \
-            "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-macos-universal.tgz" \
-            "https://install.speedtest.net/app/cli/ookla-speedtest-1.1.1-macosx-x86_64.tgz"; do
-            if curl -fsSL --retry 3 -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" "$ookla_url" -o /tmp/ookla.tgz; then
-              echo "ookla download OK: $ookla_url"
-              break
-            fi
-            echo "ookla download failed: $ookla_url"
-          done
-          test -s /tmp/ookla.tgz || { echo "FATAL: Ookla macOS download failed"; exit 1; }
-          tar -xzf /tmp/ookla.tgz -C bin speedtest
+          # Ookla (speedtest-go 兼容镜像): 包内二进制名 speedtest-go → 重命名 speedtest
+          curl -fsSL "$base/${{ matrix.ookla_asset }}" -o /tmp/ookla.tgz
+          tar -xzf /tmp/ookla.tgz -C bin speedtest-go
+          mv bin/speedtest-go bin/speedtest
           chmod +x bin/speedtest
           rm /tmp/ookla.tgz
 
           # LibreSpeed CLI v1.0.10
-          curl -fsSL "https://github.com/librespeed/speedtest-cli/releases/download/v1.0.10/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
+          curl -fsSL "$base/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
           tar -xzf /tmp/libre.tar.gz -C bin librespeed-cli
           chmod +x bin/librespeed-cli
           rm /tmp/libre.tar.gz
 
           # Cloudflare cfspeedtest v2.2.2 (universal binary)
-          curl -fsSL "https://github.com/code-inflation/cfspeedtest/releases/download/v2.2.2/cfspeedtest-universal-apple-darwin.tar.gz" -o /tmp/cf.tar.gz
+          curl -fsSL "$base/cfspeedtest-universal-apple-darwin.tar.gz" -o /tmp/cf.tar.gz
           tar -xzf /tmp/cf.tar.gz -C bin cfspeedtest
           chmod +x bin/cfspeedtest
           rm /tmp/cf.tar.gz
