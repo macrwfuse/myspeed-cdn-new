@@ -1,0 +1,47 @@
+@use "@/common/styles/colors" as *
+
+.consistency-container
+  display: flex
+  flex-direction: column
+  gap: 0.5rem
+  justify-content: space-between
+  width: 100%
+  flex: 1
+  min-height: 0
+
+.consistency-item
+  display: flex
+  justify-content: space-between
+  align-items: center
+  gap: 0.75rem
+
+.consistency-item svg
+  width: 2.25rem
+  height: 2.25rem
+  flex-shrink: 0
+
+.consistency-item .consistency-info
+  min-width: 0
+
+.consistency-item .consistency-info h2
+  color: $white
+  margin: 0
+  font-size: 1rem
+  font-weight: 600
+  word-break: break-word
+  overflow-wrap: anywhere
+
+.consistency-item .consistency-info p
+  margin: 0
+  font-weight: 600
+  font-size: 1.1rem
+
+.consistency-item .consistency-info .consistency-detail
+  color: $subtext
+  font-size: 0.9rem
+  font-weight: 500
+  display: block
+  margin-top: 0.125rem
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
