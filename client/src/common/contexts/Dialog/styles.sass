@@ -1,0 +1,215 @@
+@use "@/common/styles/colors" as *
+
+.dialog-area
+  position: fixed
+  top: 0
+  bottom: 0
+  left: 0
+  right: 0
+  width: 100%
+  height: 100%
+  background-color: rgba(0, 0, 0, 0.7)
+  display: flex
+  align-items: center
+  z-index: 999
+  justify-content: center
+  backdrop-filter: blur(4px)
+  transition: all 0.2s
+  animation: opacity 0.3s
+  overflow-x: hidden
+  overflow-y: auto
+  padding: 1rem 0
+  box-sizing: border-box
+
+.dialog-area-hidden
+  opacity: 0
+  animation: opacity 0.3s reverse
+
+.dialog
+  padding: 1.25rem
+  background-color: $dark-gray
+  backdrop-filter: blur(4px)
+  -webkit-backdrop-filter: blur(4px)
+  border: 1px solid $light-gray
+  border-radius: 1rem
+  animation: fadeIn 0.3s
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3)
+  min-width: 320px
+  max-width: min(500px, 90vw)
+  max-height: calc(100vh - 2rem)
+  box-sizing: border-box
+  display: flex
+  flex-direction: column
+  flex-shrink: 0
+
+  &.storage-dialog-wrapper,
+  &.integration-dialog,
+  &.welcome-dialog
+    max-width: 90vw
+
+.dialog-hidden
+  visibility: hidden
+  opacity: 0
+  animation: fadeOut 0.3s
+
+.dialog-header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  user-select: none
+  flex-shrink: 0
+
+.dialog a
+  color: $accent-primary
+  cursor: pointer
+  transition: color 0.15s ease
+
+.dialog a:hover
+  color: $accent-secondary
+
+.dialog-main
+  display: flex
+  align-items: center
+  flex-direction: column
+  width: 100%
+  box-sizing: border-box
+  flex: 1 1 auto
+  min-height: 0
+  overflow-x: hidden
+  overflow-y: auto
+
+  &::-webkit-scrollbar
+    width: 0.4rem
+
+  &::-webkit-scrollbar-track
+    background: transparent
+
+  &::-webkit-scrollbar-thumb
+    background: $light-gray
+    border-radius: 0.25rem
+
+    &:hover
+      background: $subtext
+
+.dialog-buttons
+  display: flex
+  margin-top: 1.25rem
+  justify-content: flex-end
+  gap: 0.75rem
+  flex-shrink: 0
+
+.dialog-text
+  font-size: 1.25rem
+  font-weight: 700
+  color: $white
+  margin: 0
+
+.dialog-description
+  font-size: 1.05rem
+  font-weight: 600
+  margin: 14px 2px 2px
+  color: $subtext
+  line-height: 1.6
+  word-wrap: break-word
+  overflow-wrap: break-word
+  max-width: 100%
+
+.dialog-description a
+  color: $accent-primary
+  text-decoration: underline
+
+.dialog-value
+  color: $accent-primary
+  font-weight: 600
+
+.dialog-icon
+  cursor: pointer
+  color: $subtext
+  transition: color 0.15s ease
+  font-size: 1.1rem
+
+.dialog-icon:hover
+  color: $accent-danger
+
+.dialog-btn
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 0.6rem
+  padding: 0.7rem 1.25rem
+  background-color: $darker-gray
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  color: $white
+  font-size: 1rem
+  font-weight: 500
+  cursor: pointer
+  transition: all 0.15s ease
+
+  &:hover
+    border-color: $accent-primary
+    color: $accent-primary
+
+  svg
+    font-size: 1rem
+
+.dialog-btn-danger
+  &:hover
+    border-color: $accent-danger
+    color: $accent-danger
+
+.dialog-secondary
+  &:hover
+    border-color: $accent-danger
+    color: $accent-danger
+
+.dialog-input
+  font-size: 1rem
+  padding: 0.7rem 1rem
+  font-weight: 500
+  margin-top: 15px
+  margin-bottom: 15px
+  width: 100%
+  background-color: $darker-gray
+  color: $white
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  text-align: center
+  box-sizing: border-box
+  outline: none
+  transition: all 0.15s ease
+
+.dialog-input::placeholder
+  color: $subtext
+
+.dialog-input:focus
+  border-color: $accent-primary
+
+.input-error
+  border-color: $accent-danger
+  
+.input-error:focus
+  border-color: $accent-danger
+
+.dialog-loading
+  min-width: 200px
+  min-height: 100px
+  display: flex
+  align-items: center
+  justify-content: center
+
+@media (max-width: 600px)
+  .dialog
+    min-width: 280px
+    max-width: 95vw
+    padding: 1rem
+  
+  .dialog-text
+    font-size: 1.15rem
+  
+  .dialog-description
+    font-size: 1rem
+  
+  .dialog-btn
+    font-size: 0.95rem
+    padding: 0.6rem 1rem
