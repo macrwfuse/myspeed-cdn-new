@@ -1,0 +1,204 @@
+@use "@/common/styles/colors" as *
+
+.chart-modal-backdrop
+  position: fixed
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background-color: rgba(0, 0, 0, 0.7)
+  display: flex
+  align-items: center
+  justify-content: center
+  z-index: 1000
+  padding: 1.5rem
+  animation: modalFadeIn 0.25s ease-out
+  backdrop-filter: blur(4px)
+
+.chart-modal-content
+  position: relative
+  width: fit-content
+  min-width: 400px
+  max-width: min(1400px, calc(100vw - 3rem))
+  max-height: 90vh
+  background-color: $dark-gray
+  backdrop-filter: blur(4px)
+  -webkit-backdrop-filter: blur(4px)
+  border: 1px solid $light-gray
+  border-radius: 1rem
+  overflow: hidden
+  animation: scaleIn 0.25s ease-out
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3)
+
+  &.modal-chart
+    width: min(100%, calc(100vw - 3rem))
+
+.chart-modal-close
+  position: absolute
+  top: 1rem
+  right: 1rem
+  background: transparent
+  border: none
+  color: $subtext
+  width: 2rem
+  height: 2rem
+  display: flex
+  align-items: center
+  justify-content: center
+  cursor: pointer
+  transition: color 0.15s ease
+  z-index: 10
+  font-size: 1.1rem
+  padding: 0
+
+  &:hover
+    color: $accent-danger
+
+.chart-modal-body
+  padding: 1.25rem
+
+  .chart-container,
+  .stats-container
+    width: 100%
+    border: none
+    transform: none !important
+    cursor: default
+    box-shadow: none
+    overflow: visible
+    max-height: none
+
+    &:hover
+      border: none
+      transform: none !important
+      box-shadow: none
+
+  &.modal-body-chart
+    .chart-container
+      min-height: min(70vh, 500px)
+      max-height: 75vh
+            
+    .chart-body
+      min-height: min(60vh, 400px)
+      max-height: 65vh
+
+  .stats-header
+    padding: 0.5rem 3rem 0.75rem 0.25rem
+
+  .stats-content
+    height: auto
+    min-height: auto
+    max-height: none
+    overflow: visible
+    padding: 0 0.25rem 0.5rem
+
+  .consistency-container
+    gap: 2rem
+    flex: none
+    height: auto
+    min-height: 0
+        
+    .consistency-item
+      svg
+        width: 3rem
+        height: 3rem
+      .consistency-info
+        h2
+          font-size: 1.25rem
+        p
+          font-size: 1.25rem
+        .consistency-detail
+          font-size: 0.95rem
+
+  .overview-items
+    gap: 1.5rem
+        
+    .overview-item
+      .info-area
+        svg
+          width: 3rem
+          height: 3rem
+        .text-area
+          h2
+            font-size: 1.25rem
+          p
+            font-size: 0.9rem
+      h2
+        font-size: 1.75rem
+
+  .info-container
+    gap: 2rem
+        
+    .test-container
+      svg
+        width: 3rem
+        height: 3rem
+      .test-info
+        h2
+          font-size: 1.25rem
+        p
+          font-size: 1.1rem
+
+  .value-container
+    gap: 2rem
+        
+    .value-item
+      svg
+        width: 3rem
+        height: 3rem
+      .value-info
+        h2
+          font-size: 1.25rem
+        p
+          font-size: 1.1rem
+
+@keyframes modalFadeIn
+  from
+    opacity: 0
+  to
+    opacity: 1
+
+@keyframes scaleIn
+  from
+    opacity: 0
+    transform: scale(0.96)
+  to
+    opacity: 1
+    transform: scale(1)
+
+@media screen and (max-width: 768px)
+  .chart-modal-backdrop
+    padding: 0.75rem
+    
+  .chart-modal-content
+    min-width: auto
+    max-width: calc(100vw - 1.5rem)
+    max-height: 85vh
+    
+    &.modal-chart
+      width: calc(100vw - 1.5rem)
+  
+  .chart-modal-body
+    padding: 0.75rem
+    
+    &.modal-body-chart
+      .chart-container
+        min-height: min(50vh, 300px)
+        max-height: 60vh
+              
+      .chart-body
+        min-height: min(40vh, 250px)
+        max-height: 50vh
+
+@media screen and (max-width: 500px)
+  .chart-modal-content
+    border-radius: 0.75rem
+    
+  .chart-modal-body
+    &.modal-body-chart
+      .chart-container
+        min-height: min(45vh, 280px)
+        max-height: 55vh
+              
+      .chart-body
+        min-height: min(35vh, 220px)
+        max-height: 45vh
