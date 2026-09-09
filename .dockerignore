@@ -1,0 +1,12 @@
+node_modules
+client/node_modules
+build
+data
+.git
+.gitignore
+.idea
+docs
+web
+*.md
+*.lock
+*.lockb
