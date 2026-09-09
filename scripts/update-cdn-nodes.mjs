@@ -90,7 +90,6 @@ const KNOWN_CDN_SOURCES = {
     'https://cd.pddpic.com/android_dev/2023-11-08/a35eaee8e1f9f018cc40ace12931f7a2.apk',
     'https://cd.pddpic.com/android_dev/2024-06-26/06027b4121edcd1f106d992128a7124b.apk',
     'https://cd.pddpic.com/volantis-open/volantis-common/app/com.xunmeng.workBench/Release_1834716.exe',
-    'https://cdn-ws.up366.cn/cn/files/setup/C72C242ED8400001EE2178A912E01146/2022/06/21/4dca83b3e1c461e070f75d2b485e75e7/up366-5.6.6.0.exe',
     'https://lf3-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe',
     'https://lf6-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe',
     'https://lf9-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe',
@@ -100,7 +99,6 @@ const KNOWN_CDN_SOURCES = {
     'https://rls.tapimg.com/pub2/202310/64a7c775fa5503fc30f46c6fea6f9faf.apk',
     'https://apk.360buyimg.com/build-cms/V5.2.0-4258-800000136-bazaar-64bit.apk',
     'https://upgrade.k.sohu.com/upgrade/SohuNews_V7.3.6_0421110326_online_1003.apk',
-    'https://uu.gdl.netease.com/4112/UU-4.68.1.exe',
     'https://8c8947-1956185621.antpcdn.com:19001/b/pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/4.17.7/baidunetdisk_4.17.7_amd64.deb',
     'https://1270e8-3086970414.antpcdn.com:19001/b/pkg-ant.baidu.com/issue/netdisk/yunguanjia/BaiduNetdisk_7.55.1.101.exe',
   ],
@@ -131,6 +129,38 @@ const KNOWN_CDN_SOURCES = {
 const FETCH_TIMEOUT = 15_000;
 const CONCURRENCY = 6;
 
+// 浏览器 UA + 防盗链 Referer（与 server/util/providers/cdnSpeedtest.js 的 dlHeaders 保持一致，
+// 否则 download.cntv.cn / video19.ifeng.com 等防盗链源会被裸请求误判为死链而被自动替换）
+const CHECK_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+const CHECK_REFERER_MAP = {
+  'download.cntv.cn': 'https://www.cntv.cn/',
+  'video19.ifeng.com': 'https://www.ifeng.com/',
+  'dldir1.qq.com': 'https://v.qq.com/',
+  'imtt.dd.qq.com': 'https://im.qq.com/',
+  'softdlc.360tpcdn.com': 'https://www.360.cn/',
+  'bigsoftdlc.360tpcdn.com': 'https://www.360.cn/',
+  'cdn.qq.ime.sogou.com': 'https://pinyin.sogou.com/',
+  'webcdn.m.qq.com': 'https://www.qq.com/',
+  'cd.pddpic.com': 'https://www.pinduoduo.com/',
+  'lf3-cdn-tos.bytegoofy.com': 'https://www.douyin.com/',
+  'lf6-cdn-tos.bytegoofy.com': 'https://www.douyin.com/',
+  'lf9-apk.ugapk.cn': 'https://www.douyin.com/',
+  'lf3-package.vlabstatic.com': 'https://www.capcut.cn/',
+  'lf6-package.vlabstatic.com': 'https://www.capcut.cn/',
+  'lf9-package.vlabstatic.com': 'https://www.capcut.cn/',
+  'open-image.ws.126.net': 'https://music.163.com/',
+};
+
+function checkHeaders(url) {
+  let host = '';
+  try { host = new URL(url).hostname; } catch { /* keep '' */ }
+  return {
+    'User-Agent': CHECK_UA,
+    'Referer': CHECK_REFERER_MAP[host] || (host ? `https://${host}/` : ''),
+  };
+}
+
 async function fetchWithTimeout(url, opts = {}, timeoutMs = FETCH_TIMEOUT) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -143,8 +173,9 @@ async function fetchWithTimeout(url, opts = {}, timeoutMs = FETCH_TIMEOUT) {
 
 async function checkUrl(url) {
   const start = Date.now();
+  const headers = checkHeaders(url);
   try {
-    const resp = await fetchWithTimeout(url, { method: 'HEAD' });
+    const resp = await fetchWithTimeout(url, { method: 'HEAD', headers });
     const latencyMs = Date.now() - start;
     const ok = resp.status >= 200 && resp.status < 400;
     return { ok, status: resp.status, latencyMs };
@@ -152,7 +183,7 @@ async function checkUrl(url) {
     try {
       const resp = await fetchWithTimeout(url, {
         method: 'GET',
-        headers: { Range: 'bytes=0-0' },
+        headers: { ...headers, Range: 'bytes=0-0' },
       });
       const latencyMs = Date.now() - start;
       const ok = resp.status >= 200 && resp.status < 400;
@@ -277,12 +308,16 @@ function parseCdnNodes(blockText) {
       uploadUrls = [...ulArrayMatch[1].matchAll(/"([^"]+)"/g)].map(m => m[1]);
     }
 
+    // 提取 fallbackDownloadUrl (保底无限流源, 需一并纳入健康检测)
+    const fbMatch = body.match(/fallbackDownloadUrl:\s*"([^"]+)"/);
+
     nodes.set(nodeId, {
       name,
       downloadUrl: dlSingleMatch ? dlSingleMatch[1] : null,
       downloadUrls,
       uploadUrl: ulSingleMatch ? ulSingleMatch[1] : null,
       uploadUrls,
+      fallbackDownloadUrl: fbMatch ? fbMatch[1] : null,
     });
   }
 
@@ -366,6 +401,11 @@ async function main() {
     if (node.downloadUrl) {
       allUrls.push(node.downloadUrl);
       urlMeta.push({ nodeId, nodeName: node.name, url: node.downloadUrl, type: 'downloadUrl' });
+    }
+    // fallbackDownloadUrl 保底源(判死时替换策略同 downloadUrl)
+    if (node.fallbackDownloadUrl) {
+      allUrls.push(node.fallbackDownloadUrl);
+      urlMeta.push({ nodeId, nodeName: node.name, url: node.fallbackDownloadUrl, type: 'downloadUrl' });
     }
   }
 
