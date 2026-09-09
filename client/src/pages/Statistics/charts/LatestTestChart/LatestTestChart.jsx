@@ -1,0 +1,61 @@
+import StatisticContainer from "@/pages/Statistics/components/StatisticContainer";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faArrowDown, faArrowUp, faPingPongPaddleBall, faWaveSquare} from "@fortawesome/free-solid-svg-icons";
+import "./styles.sass";
+import {getIconBySpeed} from "@/common/utils/TestUtil";
+import {useContext} from "react";
+import {ConfigContext} from "@/common/contexts/Config";
+import {StatusContext} from "@/common/contexts/Status";
+import {PreferencesContext} from "@/common/contexts/Preferences";
+import {convertSpeed, getSpeedUnit} from "@/common/utils/FormatUtil";
+import {t} from "i18next";
+
+export const LatestTestChart = (props) => {
+
+    const [config] = useContext(ConfigContext);
+    const [status] = useContext(StatusContext);
+    const [preferences] = useContext(PreferencesContext);
+    const speedUnit = getSpeedUnit(preferences);
+
+    if (!props.test) return <></>;
+    if (config === null) return <></>;
+
+    const hasJitter = props.test.jitter !== null && props.test.jitter !== undefined;
+
+    return (
+        <StatisticContainer title={t("latest.latest")} onClick={props.onClick} running={status.running} expanded={props.expanded}>
+            <div className="info-container">
+                <div className="test-container">
+                    <div className="test-info">
+                        <h2>{t("latest.ping")}</h2>
+                        <p className={"icon-" + getIconBySpeed(props.test.ping, config.ping, false)}>
+                            {(props.test.ping === -1 ? "N/A" : props.test.ping) + " " + t("latest.ping_unit")}
+                            {hasJitter && <span className="jitter-value"><FontAwesomeIcon icon={faWaveSquare} className="jitter-icon" />{props.test.jitter}</span>}
+                        </p>
+                    </div>
+                    <FontAwesomeIcon icon={faPingPongPaddleBall}
+                                     className={"icon-" + getIconBySpeed(props.test.ping, config.ping, false)}/>
+                </div>
+                <div className="test-container">
+                    <div className="test-info">
+                        <h2>{t("latest.up")}</h2>
+                        <p className={"icon-" + getIconBySpeed(props.test.upload, config.upload, true)}>
+                            {(props.test.upload === -1 ? "N/A" : convertSpeed(props.test.upload, preferences)) + " " + speedUnit}</p>
+                    </div>
+                    <FontAwesomeIcon icon={faArrowUp}
+                                     className={"icon-" + getIconBySpeed(props.test.upload, config.upload, true)}/>
+                </div>
+                <div className="test-container">
+                    <div className="test-info">
+                        <h2>{t("latest.down")}</h2>
+                        <p className={"icon-" + getIconBySpeed(props.test.download, config.download, true)}>
+                            {(props.test.download === -1 ? "N/A" : convertSpeed(props.test.download, preferences)) + " " + speedUnit}</p>
+                    </div>
+                    <FontAwesomeIcon icon={faArrowDown}
+                                     className={"icon-" + getIconBySpeed(props.test.download, config.download, true)}/>
+                </div>
+            </div>
+        </StatisticContainer>
+    );
+
+}
