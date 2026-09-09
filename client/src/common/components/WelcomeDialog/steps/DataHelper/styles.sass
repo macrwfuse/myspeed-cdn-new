@@ -1,0 +1,67 @@
+@use "@/common/styles/colors" as *
+
+.data-helper
+
+  h2
+    margin: 0 0 0.75rem
+    font-size: 1.15rem
+    font-weight: 500
+    color: $subtext
+
+  p
+    margin: 0
+    font-size: 1rem
+    color: $subtext
+
+
+  .speeds
+    display: flex
+    justify-content: center
+    gap: 2rem
+    margin-top: 1.25rem
+
+    .speed
+      display: flex
+      flex-direction: column
+      align-items: center
+
+      input
+        box-sizing: border-box
+        width: 100%
+
+      .speed-header
+        display: flex
+        align-items: center
+        margin-bottom: 0.75rem
+        white-space: nowrap
+
+        svg
+          font-size: 1.75rem
+          margin-right: 0.5rem
+          color: $green
+
+        .speed-text h2
+          margin: 0
+          font-size: 1.1rem
+          font-weight: 500
+          color: $subtext
+
+        .speed-text p
+          margin: 0
+          font-size: 0.95rem
+          color: $subtext
+
+
+@media screen and (max-width: 600px)
+  .data-helper .speeds
+    flex-direction: column
+    gap: 1.25rem
+    margin-top: 0.75rem
+
+    .speed
+      width: 100%
+      flex-direction: row
+      justify-content: space-between
+
+      input
+        width: 50%
