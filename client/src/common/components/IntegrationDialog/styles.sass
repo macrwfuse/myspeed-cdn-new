@@ -1,0 +1,55 @@
+@use "@/common/styles/colors" as *
+
+.integrations-wrapper
+  display: flex
+  flex-direction: column
+  gap: 1.25rem
+  margin-top: 1rem
+  width: 34rem
+
+.preview-warning
+  display: flex
+  align-items: center
+  gap: 0.6rem
+  padding: 0.875rem 1.25rem
+  background-color: rgba(239, 68, 68, 0.1)
+  border: 1px solid $accent-danger
+  border-radius: 0.75rem
+  color: $accent-danger
+  font-size: 1rem
+  font-weight: 500
+
+  svg
+    flex-shrink: 0
+
+.empty-state
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 1.25rem
+  padding: 3rem 2rem
+  text-align: center
+  color: $subtext
+
+  svg
+    font-size: 3.5rem
+    opacity: 0.6
+
+  p
+    margin: 0
+    font-size: 1.1rem
+
+.integrations-list
+  display: flex
+  flex-direction: column
+  gap: 0.875rem
+  max-height: 20rem
+  overflow-y: auto
+
+@media (max-width: 600px)
+  .integrations-wrapper
+    width: 85vw
+
+  .integrations-list
+    max-height: 50vh
