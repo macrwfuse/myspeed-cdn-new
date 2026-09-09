@@ -68,8 +68,8 @@ function shuffle(arr) {
 /**
  * 上传端点适配 — 按主机自动匹配请求方式（CDN 上传池 CDN_UPLOAD_URLS 的备注在此落实）
  *   - speed.cloudflare.com/__up : 需带 UA/Origin，URL 不带额外参数
- *   - netsp.master.qq.com       : QQ管家协议 multipart/form-data (boundary=QMUPTEST)，
- *                                 实测服务器对格式宽松且支持多流并发(原 5 路) → 多流开启
+ *   - netsp.master.qq.com       : octet-stream 多流直传（实测 62.7 Mbps; 原 QMUPTEST multipart
+ *                                 大包模式服务器解析慢导致测速卡顿, 已弃用）
  *   - 其余（mbd.baidu.com / vcs.zijieapi.com 等）: 多流 octet-stream 直传
  */
 function uploadProfile(uploadUrl) {
@@ -84,9 +84,8 @@ function uploadProfile(uploadUrl) {
             },
         };
     }
-    if (host === 'netsp.master.qq.com') {
-        return { multipart: true, multipartType: 'qmuptest', singleStream: false };
-    }
+    // netsp.master.qq.com 也走默认 octet-stream 直传(实测服务器接受任意 body 且快),
+    // 无需特殊 profile
     return {};
 }
 
@@ -168,14 +167,21 @@ function startDownloadStream(urls, stats, stopped) {
                 headers: { ...dlHeaders(url), 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
                 timeout: 15000,
             }, (res) => {
-                // 3xx 重定向: 跟随(带防盗链头)
+                // 3xx 重定向: 跟随(带防盗链头)。注意 res2 的 data 回调也必须处理
+                // stopped 主动断开(无限流重定向后持续推流, 否则 promise 永不结束)
                 if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
                     const redirectUrl = new URL(res.headers.location, url).toString();
                     res.resume();
                     const redirMod = redirectUrl.startsWith('https') ? https : http;
-                    redirMod.get(redirectUrl, { headers: dlHeaders(redirectUrl) }, (res2) => {
+                    let redirReq;
+                    redirReq = redirMod.get(redirectUrl, { headers: dlHeaders(redirectUrl) }, (res2) => {
                         res2.on('data', (chunk) => {
-                            if (!stopped.value) stats.totalBytes += chunk.length;
+                            if (stopped.value) {
+                                try { redirReq.destroy(); } catch { /* ignore */ }
+                                resolve();
+                                return;
+                            }
+                            stats.totalBytes += chunk.length;
                         });
                         res2.on('end', () => {
                             if (!stopped.value) doRequest();
@@ -185,7 +191,8 @@ function startDownloadStream(urls, stats, stopped) {
                             if (!stopped.value) setTimeout(doRequest, 50);
                             else resolve();
                         });
-                    }).on('error', () => {
+                    });
+                    redirReq.on('error', () => {
                         if (!stopped.value) setTimeout(doRequest, 50);
                         else resolve();
                     });
@@ -203,7 +210,14 @@ function startDownloadStream(urls, stats, stopped) {
 
                 consecutiveErrors = 0;
                 res.on('data', (chunk) => {
-                    if (!stopped.value) stats.totalBytes += chunk.length;
+                    // 测速窗口结束(stopped)后若服务器仍持续推流(如 QQ 4GB 无限流),
+                    // 必须主动断开并 resolve, 否则 promise 永不结束导致整个测速挂起
+                    if (stopped.value) {
+                        try { req.destroy(); } catch { /* ignore */ }
+                        resolve();
+                        return;
+                    }
+                    stats.totalBytes += chunk.length;
                 });
                 res.on('end', () => {
                     if (!stopped.value) doRequest();
