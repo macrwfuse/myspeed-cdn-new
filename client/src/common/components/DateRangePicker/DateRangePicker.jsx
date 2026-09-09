@@ -1,0 +1,249 @@
+import { useState, useRef, useEffect, useMemo } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendar, faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { t } from "i18next";
+import "./styles.sass";
+
+export const DateRangePicker = ({ from, to, onChange, minDate, maxDate }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [selecting, setSelecting] = useState("from");
+    const [tempFrom, setTempFrom] = useState(from);
+    const [tempTo, setTempTo] = useState(to);
+    const [hoverDate, setHoverDate] = useState(null);
+    const [currentMonth, setCurrentMonth] = useState(new Date(to || new Date()));
+    const popoverRef = useRef(null);
+    const triggerRef = useRef(null);
+
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const effectiveMaxDate = maxDate || today;
+    const todayDateString = new Date().toDateString();
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (popoverRef.current && !popoverRef.current.contains(event.target) &&
+                triggerRef.current && !triggerRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        setTempFrom(from);
+        setTempTo(to);
+    }, [from, to]);
+
+    const formatDisplayDate = (date) => {
+        if (!date) return "";
+        return date.toLocaleDateString(undefined, { 
+            day: "2-digit", 
+            month: "short", 
+            year: "numeric" 
+        });
+    };
+
+    const getDaysInMonth = (year, month) => {
+        return new Date(year, month + 1, 0).getDate();
+    };
+
+    const getFirstDayOfMonth = (year, month) => {
+        const day = new Date(year, month, 1).getDay();
+        return day === 0 ? 6 : day - 1;
+    };
+
+    const calendarDays = useMemo(() => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const daysInMonth = getDaysInMonth(year, month);
+        const firstDay = getFirstDayOfMonth(year, month);
+        
+        const days = [];
+        
+        const prevMonth = month === 0 ? 11 : month - 1;
+        const prevYear = month === 0 ? year - 1 : year;
+        const daysInPrevMonth = getDaysInMonth(prevYear, prevMonth);
+        
+        for (let i = firstDay - 1; i >= 0; i--) {
+            days.push({
+                day: daysInPrevMonth - i,
+                date: new Date(prevYear, prevMonth, daysInPrevMonth - i),
+                isCurrentMonth: false
+            });
+        }
+        
+        for (let i = 1; i <= daysInMonth; i++) {
+            days.push({
+                day: i,
+                date: new Date(year, month, i),
+                isCurrentMonth: true
+            });
+        }
+        
+        const nextMonth = month === 11 ? 0 : month + 1;
+        const nextYear = month === 11 ? year + 1 : year;
+        const remainingDays = 42 - days.length;
+        
+        for (let i = 1; i <= remainingDays; i++) {
+            days.push({
+                day: i,
+                date: new Date(nextYear, nextMonth, i),
+                isCurrentMonth: false
+            });
+        }
+        
+        return days;
+    }, [currentMonth]);
+
+    const handleDayClick = (date) => {
+        if (selecting === "from") {
+            setTempFrom(date);
+            setSelecting("to");
+            if (tempTo && date > tempTo) {
+                setTempTo(null);
+            }
+        } else {
+            if (tempFrom && date < tempFrom) {
+                setTempTo(tempFrom);
+                setTempFrom(date);
+            } else {
+                setTempTo(date);
+            }
+            const finalFrom = tempFrom && date < tempFrom ? date : tempFrom;
+            const finalTo = tempFrom && date < tempFrom ? tempFrom : date;
+            onChange(finalFrom, finalTo);
+            setSelecting("from");
+            setIsOpen(false);
+        }
+    };
+
+    const isInRange = (date) => {
+        if (!tempFrom) return false;
+        if (selecting === "to" && tempFrom && hoverDate) {
+            const endDate = hoverDate;
+            if (endDate < tempFrom) {
+                return date >= endDate && date <= tempFrom;
+            }
+            return date >= tempFrom && date <= endDate;
+        }
+        return tempFrom && tempTo && date >= tempFrom && date <= tempTo;
+    };
+
+    const isRangeStart = (date) => {
+        if (selecting === "to" && tempFrom && hoverDate && hoverDate < tempFrom) {
+            return date.toDateString() === hoverDate.toDateString();
+        }
+        return tempFrom && date.toDateString() === tempFrom.toDateString();
+    };
+
+    const isRangeEnd = (date) => {
+        if (selecting === "to" && tempFrom && hoverDate) {
+            if (hoverDate < tempFrom) {
+                return date.toDateString() === tempFrom.toDateString();
+            }
+            return date.toDateString() === hoverDate.toDateString();
+        }
+        return tempTo && date.toDateString() === tempTo.toDateString();
+    };
+
+    const isToday = (date) => {
+        return date.toDateString() === todayDateString;
+    };
+
+    const isSelected = (date) => {
+        return isRangeStart(date) || isRangeEnd(date);
+    };
+
+    const isDisabled = (date) => {
+        if (minDate && date < minDate) return true;
+        if (effectiveMaxDate && date > effectiveMaxDate) return true;
+        return false;
+    };
+
+    const prevMonth = () => {
+        setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+    };
+
+    const nextMonth = () => {
+        setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+    };
+
+    const isCurrentMonthView = () => {
+        const now = new Date();
+        return currentMonth.getMonth() === now.getMonth() && 
+               currentMonth.getFullYear() === now.getFullYear();
+    };
+
+    const weekDays = [
+        t("calendar.mon"),
+        t("calendar.tue"),
+        t("calendar.wed"),
+        t("calendar.thu"),
+        t("calendar.fri"),
+        t("calendar.sat"),
+        t("calendar.sun")
+    ];
+
+    return (
+        <div className="date-range-picker">
+            <div 
+                className="date-range-trigger" 
+                ref={triggerRef}
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <FontAwesomeIcon icon={faCalendar} className="calendar-icon" />
+                <span className="date-range-text">
+                    {from && to ? (
+                        <>{formatDisplayDate(from)} - {formatDisplayDate(to)}</>
+                    ) : (
+                        t("calendar.select_range")
+                    )}
+                </span>
+            </div>
+
+            {isOpen && (
+                <div className="date-range-popover" ref={popoverRef}>
+                    <div className="calendar-nav">
+                        <button className="nav-btn" onClick={prevMonth}>
+                            <FontAwesomeIcon icon={faChevronLeft} />
+                        </button>
+                        <span className="current-month">
+                            {currentMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                        </span>
+                        <button 
+                            className="nav-btn" 
+                            onClick={nextMonth}
+                            disabled={isCurrentMonthView()}
+                        >
+                            <FontAwesomeIcon icon={faChevronRight} />
+                        </button>
+                    </div>
+
+                    <div className="calendar-grid">
+                        <div className="weekdays">
+                            {weekDays.map((day) => (
+                                <div key={day} className="weekday">{day}</div>
+                            ))}
+                        </div>
+                        <div className="days">
+                            {calendarDays.map((item, index) => (
+                                <button
+                                    key={index}
+                                    className={`day-btn ${!item.isCurrentMonth ? "other-month" : ""} ${isInRange(item.date) ? "in-range" : ""} ${isRangeStart(item.date) ? "range-start" : ""} ${isRangeEnd(item.date) ? "range-end" : ""} ${isSelected(item.date) ? "selected" : ""} ${isToday(item.date) ? "today" : ""} ${isDisabled(item.date) ? "disabled" : ""}`}
+                                    onClick={() => !isDisabled(item.date) && handleDayClick(item.date)}
+                                    onMouseEnter={() => selecting === "to" && !isDisabled(item.date) && setHoverDate(item.date)}
+                                    onMouseLeave={() => setHoverDate(null)}
+                                    disabled={isDisabled(item.date)}
+                                >
+                                    {item.day}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
