@@ -1,0 +1,79 @@
+name: Build SpeedTest CLI
+
+on:
+  push:
+    tags:
+      - 'speedtest-v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. speedtest-v1.0.0)'
+        required: true
+
+jobs:
+  build:
+    name: "${{ matrix.name }}"
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Windows x64"
+            runner: windows-latest
+            target: bun-windows-x64
+            output: speedtest-windows-x64.exe
+          - name: "Linux x64"
+            runner: ubuntu-latest
+            target: bun-linux-x64
+            output: speedtest-linux-x64
+          - name: "Linux arm64"
+            runner: ubuntu-24.04-arm
+            target: bun-linux-arm64
+            output: speedtest-linux-arm64
+          - name: "macOS x64"
+            runner: macos-latest
+            target: bun-darwin-x64
+            output: speedtest-macos-x64
+          - name: "macOS arm64"
+            runner: macos-13
+            target: bun-darwin-arm64
+            output: speedtest-macos-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Compile binary
+        run: bun build --compile --target=${{ matrix.target }} speedtest.mjs --outfile ${{ matrix.output }}
+
+      - name: Get release
+        id: release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ github.event.inputs.tag || github.ref_name }}';
+            const { data } = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: tag
+            });
+            return data.id;
+
+      - name: Upload to Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const releaseId = ${{ steps.release.outputs.result }};
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+              name: '${{ matrix.output }}',
+              data: fs.readFileSync('${{ matrix.output }}')
+            });
