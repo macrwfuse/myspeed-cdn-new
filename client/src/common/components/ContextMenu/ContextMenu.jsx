@@ -1,0 +1,132 @@
+import React, {useEffect, useRef, useState, useCallback} from "react";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import "./styles.sass";
+
+export const ContextMenu = ({items, position, onClose}) => {
+    const menuRef = useRef(null);
+    const [focusedIndex, setFocusedIndex] = useState(-1);
+    const [adjustedPosition, setAdjustedPosition] = useState(position);
+
+    const actionableItems = items.map((item, index) => ({...item, originalIndex: index}))
+        .filter(item => !item.divider);
+
+    const handleItemClick = useCallback((item) => {
+        item.onClick();
+        onClose();
+    }, [onClose]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+
+        const handleKeyDown = (event) => {
+            switch (event.key) {
+                case "Escape":
+                    event.preventDefault();
+                    onClose();
+                    break;
+                case "ArrowDown":
+                    event.preventDefault();
+                    setFocusedIndex(prev => {
+                        const next = prev + 1;
+                        return next >= actionableItems.length ? 0 : next;
+                    });
+                    break;
+                case "ArrowUp":
+                    event.preventDefault();
+                    setFocusedIndex(prev => {
+                        const next = prev - 1;
+                        return next < 0 ? actionableItems.length - 1 : next;
+                    });
+                    break;
+                case "Enter":
+                case " ":
+                    event.preventDefault();
+                    if (focusedIndex >= 0 && focusedIndex < actionableItems.length) {
+                        handleItemClick(actionableItems[focusedIndex]);
+                    }
+                    break;
+                case "Tab":
+                    event.preventDefault();
+                    onClose();
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [onClose, focusedIndex, actionableItems, handleItemClick]);
+
+    useEffect(() => {
+        if (menuRef.current && position) {
+            const rect = menuRef.current.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let adjustedX = position.x;
+            let adjustedY = position.y;
+
+            if (position.x + rect.width > viewportWidth) {
+                adjustedX = viewportWidth - rect.width - 10;
+            }
+
+            if (position.y + rect.height > viewportHeight) {
+                adjustedY = viewportHeight - rect.height - 10;
+            }
+
+            setAdjustedPosition({x: adjustedX, y: adjustedY});
+        }
+    }, [position]);
+
+    useEffect(() => {
+        menuRef.current?.focus();
+        setFocusedIndex(0);
+    }, []);
+
+    if (!position) return null;
+
+    return (
+        <div
+            ref={menuRef}
+            className="context-menu"
+            style={{left: adjustedPosition.x, top: adjustedPosition.y}}
+            role="menu"
+            aria-label="Context menu"
+            tabIndex={-1}
+        >
+            {items.map((item, index) => {
+                if (item.divider) {
+                    return <div key={index} className="context-menu-divider" role="separator"/>;
+                }
+
+                const actionableIndex = actionableItems.findIndex(ai => ai.originalIndex === index);
+                const isFocused = actionableIndex === focusedIndex;
+
+                return (
+                    <div
+                        key={index}
+                        className={`context-menu-item${item.danger ? " context-menu-danger" : ""}${isFocused ? " context-menu-focused" : ""}`}
+                        onClick={() => handleItemClick(item)}
+                        onMouseEnter={() => setFocusedIndex(actionableIndex)}
+                        role="menuitem"
+                        aria-label={item.label}
+                        tabIndex={-1}
+                    >
+                        {item.icon && <FontAwesomeIcon icon={item.icon}/>}
+                        <span>{item.label}</span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
