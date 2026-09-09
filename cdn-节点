@@ -1,0 +1,102 @@
+http://115.169.22.22:8080/ 江苏省-南京市
+222.68.195.2:8080  上海市
+
+节点 1 / 节点 2 — 安装包下载测速
+原理： 从各大平台的 APP 安装包下载测速，CDN 带宽大，测速更准确。使用 IDM 等下载工具时需关闭。
+
+## 已内置 CDN 节点组
+
+每个节点组按 CDN 列表名命名，测速时从各自列表中随机选取一个下载链接。
+Ping 统一使用 http://webcdn.m.qq.com
+
+### 和彩云 CDN (`cdn-mcloud`)
+- 下载源: 1个
+- 上传: Cloudflare fallback
+
+### 天翼云 CDN (`cdn-ctyun`)
+- 下载源: 1个
+- 上传: Cloudflare fallback
+
+### Speedo云 CDN (`cdn-speedo`)
+- 下载源: 30个 (随机选取)
+- 上传源: 7个 (教育网多线测速，随机选取)
+- 来源: 抖音/AcFun/七牛云/百度网盘/新浪/搜狐/微博/网易/vivo/拼多多/小红书/UU加速器/剪映/京东等
+
+### 360云 CDN (`cdn-360`)
+- 下载源: 10个 (随机选取)
+- 上传: Cloudflare fallback
+- 来源: 搜狗输入法/360浏览器/腾讯视频/PPS影音/央视影音/2345看图王/Firefox/傲游浏览器/金山PDF
+
+### 腾讯云 CDN (`cdn-tencent`)
+- 下载源: 1个 (SpeedTestData.dat)
+- 上传: 腾讯自有节点 (netsp.master.qq.com)
+
+---
+
+## 原始节点列表
+
+下载节点列表（dlid1 — 30个）
+"和彩云": "https://img.mcloud.139.com/material_prod/material_media/20221128/1669626861087.png",
+"天翼云桌面": "https://desk.ctyun.cn:8999/desktop-prod/software/windows_tob_client/15/64/202030001/CtyunClouddeskUniversal_2.3.0_202030001_x86_20240327104015_Setup.exe"
+  },
+#\t平台\t下载链接
+1\t抖音\thttps://lf9-apk.ugapk.cn/package/apk/aweme/5072_340301/aweme_douyin-huidu-gw-aweme-3430_v5072_340301_eea8_1747058635.apk
+2\tAcFun\thttps://cdn.aixifan.com/downloads/AcfunLive-Setup-1.9.0.200-ReleaseX64_6d5c40.exe
+3\t七牛云\thttps://devtools.qiniu.com/linux/amd64/qrsctl
+4\t七牛云(mac)\thttps://devtools.qiniu.com/qdoractl-darwin-amd64-0.4.6
+5\t微信小程序Studio\thttps://gw.alipayobjects.com/os/volans-demo/93211a67-0eed-40ff-8a48-f6c137a88781/MiniProgramStudio-3.1.3.exe
+6\t百度网盘(Linux)\thttps://8c8947-1956185621.antpcdn.com:19001/b/pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/4.17.7/baidunetdisk_4.17.7_amd64.deb
+7\t新浪新闻(安卓)\thttps://downapp.sina.cn/m/06/sinaNews_8.27.0_1719288606_4386_3538_armeabi-v7a.apk
+8\t新浪公开课(安卓)\thttps://i1.sinaimg.cn/edu/sinaopen/SinaOpencourse_V2.02.apk
+9\t搜狐新闻(安卓)\thttps://upgrade.k.sohu.com/upgrade/SohuNews_V7.3.6_0421110326_online_1003.apk
+10\t搜狐(安卓)\thttps://statics.itc.cn/lt-app/sohumobile_official_gray_optimizeRelease_4_1.0.3_01161850.apk
+11\t微博(安卓)\thttps://pkg.sinaimg.cn/weibo_13.11.1_vcode_6489_wm_3333_1001_so_32_64_weibo_5395_205935.apk
+12\t网易(安卓)\thttps://open-image.ws.126.net/android_phone_release-sp_open-v9.9.9-v0a5b3c1dc0df472bb2fb057d0a5426c3.apk
+13\t抖音PC\thttps://lf3-cdn-tos.bytegoofy.com/obj/douyin-pc-client/7044145585217083655/releases/8293088/1.0.8/win32-ia32/douyin-v1.0.8-win32-ia32-douyin.exe
+14\t抖音PC(备用)\thttps://lf6-cdn-tos.bytegoofy.com/obj/douyin-pc-client/7044145585217083655/releases/8293088/1.0.8/win32-ia32/douyin-v1.0.8-win32-ia32-douyin.exe
+15\tvivo应用\thttps://wwwstatic.vivo.com.cn/vivoportal/files/download/app/20231026/350bda07c8a0719919bcadbf5aea3538.apk
+16\t拼多多(安卓)\thttps://cd.pddpic.com/android_dev/2023-11-08/a35eaee8e1f9f018cc40ace12931f7a2.apk
+17\t百度网盘Win\thttps://1270e8-3086970414.antpcdn.com:19001/b/pkg-ant.baidu.com/issue/netdisk/yunguanjia/BaiduNetdisk_7.55.1.101.exe
+18\t小红书(安卓)\thttps://rls.tapimg.com/pub2/202310/64a7c775fa5503fc30f46c6fea6f9faf.apk
+19\tUU加速器\thttps://uu.gdl.netease.com/4112/UU-4.68.1.exe
+20\t拼多多(安卓新)\thttps://cd.pddpic.com/android_dev/2024-06-26/06027b4121edcd1f106d992128a7124b.apk
+21\t蘑菇快涨(安卓)\thttps://cd.pddpic.com/volantis-open/volantis-common/app/com.xunmeng.workBench/Release_1834716.exe
+22\t366安全\thttps://cdn-ws.up366.cn/cn/files/setup/C72C242ED8400001EE2178A912E01146/2022/06/21/4dca83b3e1c461e070f75d2b485e75e7/up366-5.6.6.0.exe
+23\t网易(安卓新)\thttps://open-image.ws.126.net/android_phone_release-sp_open-v9.10.1-vb7b79d6b531448baaca3a81e7fbdc13f.apk
+24\t剪映PC\thttps://lf3-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe
+25\t剪映PC(备用)\thttps://lf6-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe
+26\t剪映PC(备用2)\thttps://lf9-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe
+27\tASAAS\thttps://file.ljcdn.com/saas-pkg/asaas-new/new_asaas_4.0.56_win_prod.zip
+28\t凤凰视频\thttps://video19.ifeng.com/video09/2022/07/06/p6950362006465552946-102-162611.mp4
+29\t京东(安卓)\thttps://apk.360buyimg.com/build-cms/V5.2.0-4258-800000136-bazaar-64bit.apk
+30\t京东金融\thttps://download.jr.jd.com/downapp/jrapp_jr9631.apk
+上传节点列表（ulid6 — 教育网多线测速）
+#\t来源\t上传链接
+1\t中国科学技术大学\thttps://test.ustc.edu.cn/backend/empty.php?cors=1
+2\t清华大学\thttps://iptv.tsinghua.edu.cn/st/empty.php?cors=1
+3\t上海交通大学\thttps://ftp.sjtu.edu.cn/speedtest/backend/empty.php?cors=1
+4\t南京大学\thttps://test.nju.edu.cn/backend/empty.php?cors=1
+5\t山东(IP)\thttps://219.140.61.101/backend/empty.php?cors=1
+6\t湖北(IP)\thttps://119.36.86.250:81/backend/empty.php?cors=1
+7\t河南(IP)\thttp://211.67.53.2/backend/empty.php?cors=1
+核心逻辑
+节点 1/2：随机从 dlid1（30个安装包）或 dlid2（5个子集）中选取一个进行下载测速
+Ping 测试：使用 https://lf3-cdn-tos.bytecdntp.com/（字节跳动 CDN）
+测速原理是通过实际下载大型 APP 安装包（几十MB到几百MB）来计算网速
+
+360云 cdn下载列表：
+https://cdn.qq.ime.sogou.com/QQPinyin_Setup_6.6.6304.400.exe
+http://softdlc.360tpcdn.com/auto/20201130/2000000064_f07aefc3d918ebdafa9418f3f5ef5f9c.exe (360浏览器)
+https://dldir1.qq.com/qqtv/TencentVideo11.99.8523.0.exe (腾讯视频)
+http://softdlc.360tpcdn.com/auto/20201127/23_21ed487ededbbb428b2a7dcecc969c7c.exe (PPS影音)
+https://download.cntv.cn/cbox/v6/ysyy_v6.0.3.3_1001_setup_x64.exe?spm=0.PF8WgFTOZypm.ETms2K8Lsimc.6&file=ysyy_v6.0.3.3_1001_setup_x64.exe (央视影音)
+http://softdlc.360tpcdn.com/auto/20201127/100101123_879baf4f2d9d14f191be2443e16504af.exe (360视频)
+https://dl.2345.com/pic/2345pic_x64_v11.3.0.10165.exe (2345看图王)
+http://bigsoftdlc.360tpcdn.com/auto/20200826/104511_999095167454c21f770b31e8f080ebb7.exe (Firefox)
+http://bigsoftdlc.360tpcdn.com/auto/20210401/103779382_99dafefbd4193095a95fa713348fe6e7.exe (傲游浏览器)
+http://bigsoftdlc.360tpcdn.com/auto/20201125/105005364_74cbde2c220e12dbd49b2c86e0ab2c6f.exe (金山PDF)
+
+腾讯云cdn 下载列表：
+http://webcdn.m.qq.com/speed/SpeedTestData.dat（下载
+腾讯cdn上传节点：
+ http://netsp.master.qq.com/cgi-bin/netspeed（上传1GB）
