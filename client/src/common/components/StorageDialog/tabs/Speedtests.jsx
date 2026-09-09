@@ -1,0 +1,224 @@
+import React, {useContext, useEffect, useState} from "react";
+import {deleteRequest, downloadRequest, patchRequest, putRequest} from "@/common/utils/RequestUtil";
+import {SpeedtestContext} from "@/common/contexts/Speedtests";
+import {ConfigContext} from "@/common/contexts/Config";
+import {ToastNotificationContext} from "@/common/contexts/ToastNotification";
+import {t} from "i18next";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faFileExport, faFileImport, faTrashCan, faChartLine, faClockRotateLeft, faCheck, faArrowLeft} from "@fortawesome/free-solid-svg-icons";
+
+const RETENTION_PRESETS = [
+    {id: "week", days: 7},
+    {id: "month", days: 30},
+    {id: "quarter", days: 90},
+    {id: "half_year", days: 180},
+    {id: "year", days: 365},
+    {id: "forever", days: 0}
+];
+
+const matchPreset = (days) => RETENTION_PRESETS.find(p => p.days === days)?.id || "custom";
+
+export default ({tests, close}) => {
+    const [deleteWarning, setDeleteWarning] = useState(false);
+    const {updateTests} = useContext(SpeedtestContext);
+    const [config, reloadConfig] = useContext(ConfigContext);
+    const updateToast = useContext(ToastNotificationContext);
+
+    const initialDays = parseInt(config?.retentionDays ?? "365");
+    const [retentionSelected, setRetentionSelected] = useState(matchPreset(initialDays));
+    const [retentionCustom, setRetentionCustom] = useState(String(initialDays));
+    const [savingRetention, setSavingRetention] = useState(false);
+
+    useEffect(() => {
+        const days = parseInt(config?.retentionDays ?? "365");
+        setRetentionSelected(matchPreset(days));
+        setRetentionCustom(String(days));
+    }, [config?.retentionDays]);
+
+    const handleSelectChange = (value) => {
+        setRetentionSelected(value);
+        if (value === "custom") {
+            setRetentionCustom(String(initialDays));
+        }
+    };
+
+    const exitCustomMode = () => {
+        const savedPreset = matchPreset(initialDays);
+        const target = savedPreset === "custom" ? "year" : savedPreset;
+        setRetentionSelected(target);
+        setRetentionCustom(String(initialDays));
+    };
+
+    const currentRetentionDays = retentionSelected === "custom"
+        ? parseInt(retentionCustom)
+        : RETENTION_PRESETS.find(p => p.id === retentionSelected)?.days;
+
+    const isRetentionValid = retentionSelected !== "custom"
+        || (!isNaN(currentRetentionDays) && currentRetentionDays >= 0 && currentRetentionDays <= 10000);
+
+    const isRetentionDirty = String(currentRetentionDays) !== String(initialDays);
+
+    const saveRetention = async () => {
+        if (!isRetentionValid) return;
+        setSavingRetention(true);
+        const res = await patchRequest("/config/retentionDays", {value: String(currentRetentionDays)});
+        setSavingRetention(false);
+        if (res.ok) {
+            updateToast(t("storage.retention_saved"), "green", faCheck);
+            reloadConfig();
+        } else {
+            updateToast(t("dropdown.changes_unsaved"), "red");
+        }
+    };
+
+    const deleteHistory = () => {
+        if (!deleteWarning) {
+            setDeleteWarning(true);
+            return;
+        }
+
+        deleteRequest("/storage/tests/history").then(() => {
+            setDeleteWarning(false);
+            updateTests();
+            updateToast(t("storage.history_cleared"), "green", faTrashCan);
+            close();
+        });
+    }
+
+    const downloadHistory = (type) => {
+        downloadRequest(`/storage/tests/history/${type}`).then(() => {
+            updateToast(t("storage.tests_exported"), "green", faFileExport);
+            close();
+        });
+    }
+
+    const importHistory = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+
+        input.onchange = () => {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.readAsText(file);
+
+            reader.onload = () => {
+                const data = JSON.parse(reader.result);
+                putRequest("/storage/tests/history", data).then((res) => {
+                    if (res.ok) {
+                        updateToast(t("storage.tests_imported"), "green", faFileImport);
+                        updateTests();
+                    } else {
+                        updateToast(t("storage.import_test_error"), "red");
+                    }
+                    close();
+                });
+            }
+            input.remove();
+        }
+
+        input.click();
+    }
+
+
+    return (
+        <>
+            <div className="storage-row">
+                <div className="storage-row-label">
+                    <FontAwesomeIcon icon={faChartLine}/>
+                    <h3>{t("storage.stored_tests")}</h3>
+                </div>
+                <p className="storage-row-value">{tests} {t("storage.tests")}</p>
+            </div>
+
+            <div className="storage-row">
+                <div className="storage-row-label">
+                    <FontAwesomeIcon icon={faClockRotateLeft}/>
+                    <h3 title={t("storage.retention_desc")}>{t("storage.retention")}</h3>
+                </div>
+                <div className="storage-row-actions storage-retention-controls">
+                    {retentionSelected === "custom" ? (
+                        <>
+                            <button
+                                type="button"
+                                className="storage-icon-btn"
+                                onClick={exitCustomMode}
+                                title={t("storage.retention_back")}
+                                aria-label={t("storage.retention_back")}
+                            >
+                                <FontAwesomeIcon icon={faArrowLeft}/>
+                            </button>
+                            <div className="storage-input-wrap">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="10000"
+                                    className={`storage-input${!isRetentionValid ? " input-error" : ""}`}
+                                    value={retentionCustom}
+                                    onChange={(e) => setRetentionCustom(e.target.value)}
+                                    placeholder={t("storage.retention_days_placeholder")}
+                                    autoFocus
+                                />
+                                <span className="storage-input-suffix">{t("storage.retention_days_suffix")}</span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="storage-retention-select-wrap">
+                            <select
+                                className="storage-select"
+                                value={retentionSelected}
+                                onChange={(e) => handleSelectChange(e.target.value)}
+                            >
+                                {RETENTION_PRESETS.map(p => (
+                                    <option key={p.id} value={p.id}>{t(`storage.retention_options.${p.id}`)}</option>
+                                ))}
+                                <option value="custom">{t("storage.retention_options.custom")}</option>
+                            </select>
+                        </div>
+                    )}
+                    <button
+                        className="dialog-btn"
+                        onClick={saveRetention}
+                        disabled={savingRetention || !isRetentionValid || !isRetentionDirty}
+                    >
+                        {savingRetention ? t("dialog.saving") : t("dialog.save")}
+                    </button>
+                </div>
+            </div>
+
+            <div className="storage-row">
+                <div className="storage-row-label">
+                    <FontAwesomeIcon icon={faFileExport}/>
+                    <h3>{t("storage.export_tests")}</h3>
+                </div>
+                <div className="storage-row-actions">
+                    <button className="dialog-btn" onClick={() => downloadHistory("csv")}>
+                        {t("storage.csv")}</button>
+                    <button className="dialog-btn" onClick={() => downloadHistory("json")}>
+                        {t("storage.json")}</button>
+                </div>
+            </div>
+
+            <div className="storage-row">
+                <div className="storage-row-label">
+                    <FontAwesomeIcon icon={faFileImport}/>
+                    <h3>{t("storage.import_tests")}</h3>
+                </div>
+                <div className="storage-row-actions">
+                    <button className="dialog-btn" onClick={importHistory}>{t("storage.import")}</button>
+                </div>
+            </div>
+
+            <div className="storage-row">
+                <div className="storage-row-label">
+                    <FontAwesomeIcon icon={faTrashCan}/>
+                    <h3>{t("storage.clear_history")}</h3>
+                </div>
+                <div className="storage-row-actions">
+                    <button className="dialog-btn dialog-secondary" onClick={deleteHistory}>
+                        {deleteWarning ? t("storage.confirm_delete") : t("storage.delete")}</button>
+                </div>
+            </div>
+        </>
+    )
+}
