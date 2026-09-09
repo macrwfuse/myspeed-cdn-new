@@ -1,0 +1,56 @@
+@use "@/common/styles/colors" as *
+
+.form-field
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 1rem
+
+  label:first-child
+    font-size: 0.95rem
+    font-weight: 500
+    color: $subtext
+    flex: 1
+
+.form-field-error
+  color: $accent-danger !important
+
+.form-field-input
+  width: 55%
+  flex-shrink: 0
+  background-color: $dark-gray
+  border: 1px solid $light-gray
+  border-radius: 0.6rem
+  padding: 0.6rem 0.875rem
+  font-size: 0.95rem
+  color: $white
+  font-family: inherit
+  transition: border-color 0.15s ease
+
+  &:focus
+    outline: none
+    border-color: $accent-primary
+
+  &.input-error
+    border-color: $accent-danger
+
+  &::placeholder
+    color: $subtext
+    opacity: 0.6
+
+  &:disabled
+    opacity: 0.5
+    cursor: not-allowed
+
+.form-field-textarea
+  min-height: 4rem
+  resize: vertical
+
+@media (max-width: 600px)
+  .form-field
+    flex-direction: column
+    align-items: flex-start
+    gap: 0.5rem
+
+    .form-field-input
+      width: 100%
