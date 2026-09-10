@@ -91,39 +91,51 @@ function uploadProfile(uploadUrl) {
 
 /**
  * 通过 HTTP HEAD 测量延迟 (类似 ICMP ping)
+ *
+ * 只统计成功收到响应的样本: 连接失败/被拒/超时的耗时接近 0ms, 若计入平均值
+ * 会把 ping 严重拉低(实测对不可达目标全部失败时均值仅约 2ms)。失败次数单独返回。
  */
 async function measurePing(url, count = PING_COUNT) {
     const latencies = [];
+    let failures = 0;
+
     for (let i = 0; i < count; i++) {
         const start = Date.now();
         await new Promise((resolve) => {
+            let settled = false;
+            const finish = () => { if (!settled) { settled = true; resolve(); } };
+
             const parsed = new URL(url);
             const mod = parsed.protocol === 'https:' ? https : http;
-            const req = mod.request(parsed, { method: 'HEAD', timeout: 5000 }, () => {
+            const req = mod.request(parsed, { method: 'HEAD', timeout: 5000 }, (res) => {
+                res.resume();
                 latencies.push(Date.now() - start);
-                resolve();
+                finish();
             });
             req.on('error', () => {
-                latencies.push(Date.now() - start);
-                resolve();
+                if (settled) return;   // timeout 后 destroy 会再触发 error, 避免重复计数
+                failures++;
+                finish();
             });
             req.on('timeout', () => {
+                if (settled) return;
+                failures++;
                 req.destroy();
-                latencies.push(5000);
-                resolve();
+                finish();
             });
             req.end();
         });
         await new Promise(r => setTimeout(r, 200));
     }
 
-    if (latencies.length === 0) return { ping: 0, jitter: 0 };
+    // 全部失败: 无法测得有效延迟, 返回 null(展示端 parseCdn 回落为 0), 避免假低值
+    if (latencies.length === 0) return { ping: null, jitter: null, failures };
 
     const avg = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
     const variance = latencies.reduce((sum, v) => sum + (v - avg) ** 2, 0) / latencies.length;
     const jitter = Math.round(Math.sqrt(variance));
 
-    return { ping: avg, jitter };
+    return { ping: avg, jitter, failures };
 }
 
 /**
@@ -450,9 +462,12 @@ export async function runCdnSpeedtest(serverConfig) {
     // 上传端点请求方式/流数适配（CF 带 UA/Origin；QQ multipart QMUPTEST 多流）
     const ulProfile = resolvedUlUrl ? uploadProfile(resolvedUlUrl) : null;
 
-    // 1. Ping
+    // 1. Ping (只统计成功样本; 全部失败时 ping=null, 由 parseData 回落为 0)
     const pingTarget = pingUrl || dlCandidates[0];
-    const { ping, jitter } = await measurePing(pingTarget);
+    const { ping, jitter, failures: pingFailures } = await measurePing(pingTarget);
+    if (ping === null) {
+        console.warn(`[cdn-speedtest] ping 全部失败 (${pingFailures} 次), 上报为 0: ${pingTarget}`);
+    }
 
     // 2. Download (候选数组, 死链自动换源 + 保底)
     const dlResult = await measureDownload(dlCandidates, numStreams, downloadTime * 1000);
