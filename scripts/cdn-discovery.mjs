@@ -339,6 +339,7 @@ export const CDN_DOMAIN_GROUPS = {
     'dldir1.qq.com', 'gtimg.cn', '2345.com',
   ],
   '腾讯云CDN': ['webcdn.m.qq.com', 'master.qq.com'],
+  '联想电脑管家CDN': ['speedtest-fast.lenovo.com.cn'],
 };
 
 export function matchCdnGroup(url) {
