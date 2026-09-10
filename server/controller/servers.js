@@ -468,6 +468,31 @@ export const CDN_SERVERS = {
         streams: 20,
         downloadTime: 10,
         uploadTime: 10
+    },
+
+    // ── 联想电脑管家 CDN ──
+    // 节点获取(与管家插件 WSNetSpeedPlugin.dll 实测流程一致):
+    //   GET confUrl (Authorization: Bearer <uploadToken>) → data.dl_list / data.ul_list
+    // 测速原理(实测): 7 流并发 HTTP 下载 dl_list 安装包 + 多流 octet-stream POST 上传到
+    //   ul_list(管家每流 20MB/请求), 结果经 WinHTTP 上报 osfsr.lenovomm.com/report2
+    // 上传点鉴权: 需 JWT(8 小时有效, 设备私钥向 ldc.lenovo.com.cn/api/auth 换取);
+    //   uploadToken 留空时上传自动回退共享池(CDN_UPLOAD_URLS), 下载无需鉴权不受影响
+    "cdn-lenovo": {
+        id: "cdn-lenovo",
+        name: "联想电脑管家 CDN",
+        downloadUrls: [
+            "https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_apps.exe",
+            "https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_apps_v2.8.exe",
+            "https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_preload_thinkpad_smb_apps.exe"
+        ],
+        confUrl: "https://ldc.lenovo.com.cn/api/m/speedtest/v1/conf",
+        uploadUrl: "https://speedtest.lenovo.com.cn/api/m/upload",
+        uploadToken: "",   // 可选: 联想 JWT — 配置后启用联想专属上传; 亦可用环境变量 LENOVO_SPEEDTEST_TOKEN
+        uploadUrls: CDN_UPLOAD_URLS,
+        pingUrl: "https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_apps.exe",
+        streams: 7,
+        downloadTime: 10,
+        uploadTime: 10
     }
 };
 
