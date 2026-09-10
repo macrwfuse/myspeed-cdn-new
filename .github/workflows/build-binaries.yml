@@ -166,7 +166,8 @@ jobs:
           rm /tmp/ookla.tgz
 
           # LibreSpeed CLI v1.0.10
-          curl -fsSL "$base/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
+          # 资产名与上游一致(不含版本号): librespeed-cli_<os>_<arch>.tar.gz
+          curl -fsSL "$base/librespeed-cli_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
           tar -xzf /tmp/libre.tar.gz -C bin librespeed-cli
           chmod +x bin/librespeed-cli
           rm /tmp/libre.tar.gz
@@ -278,7 +279,8 @@ jobs:
           rm /tmp/ookla.tgz
 
           # LibreSpeed CLI v1.0.10
-          curl -fsSL "$base/librespeed-cli_1.0.10_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
+          # 资产名与上游一致(不含版本号): librespeed-cli_<os>_<arch>.tar.gz
+          curl -fsSL "$base/librespeed-cli_${{ matrix.libre_suffix }}" -o /tmp/libre.tar.gz
           tar -xzf /tmp/libre.tar.gz -C bin librespeed-cli
           chmod +x bin/librespeed-cli
           rm /tmp/libre.tar.gz
