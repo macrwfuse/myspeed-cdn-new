@@ -43,7 +43,11 @@ export default async (mode, serverId, serverUrl) => {
 
         if (serverId) args.push(`--server-id=${serverId}`);
     } else if (mode === "libre") {
-        args = ['--json', '--duration=5', '--source=' + interfaceIp];
+        // 并发与下载块数调优: 教育网 LibreSpeed 节点单连接带宽受限, 默认并发 3 会
+        // 严重低估下载(实测 ZJU: c=3 仅 22.7 Mbps, c=8 达 430+ Mbps);
+        // 上传单流即可吃满不受影响。--chunks/--upload-size 同步调大避免部分
+        // 节点默认块数不足/上传负载过小导致中断或数值失真。
+        args = ['--json', '--duration=5', '--concurrent=8', '--chunks=256', '--upload-size=4096', '--source=' + interfaceIp];
         if (serverUrl) {
             const customServerConfig = [{
                 id: 1,
