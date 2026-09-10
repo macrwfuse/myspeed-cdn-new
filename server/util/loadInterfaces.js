@@ -1,6 +1,7 @@
 import os from 'node:os';
 import https from 'node:https';
 import * as config from '../controller/config.js';
+import { fixMojibake } from './fixMojibake.js';
 
 export let interfaces = {};
 
@@ -9,9 +10,11 @@ export const requestInterfaces = async () => {
     let interfacesResult = {};
 
     console.log("Looking for network interfaces...");
-    for (let i in interfacesNode) {
-        for (let j in interfacesNode[i]) {
-            let address = interfacesNode[i][j];
+    for (let rawName in interfacesNode) {
+        // Bun 在 Windows 下会把网卡名按 Latin-1 解码（"以太网" → "ä»¥å¤ªç½"），此处还原
+        const i = fixMojibake(rawName);
+        for (let j in interfacesNode[rawName]) {
+            let address = interfacesNode[rawName][j];
 
             if (address.internal) continue;
 
@@ -55,7 +58,14 @@ export const requestInterfaces = async () => {
         console.log(`Found interface ${i} with IP ${interfaces[i]}`);
     }
 
-    const currentInterface = await config.getValue("interface");
+    const storedInterface = await config.getValue("interface");
+    const currentInterface = fixMojibake(storedInterface);
+
+    // 历史配置中可能保存了乱码网卡名: 修复后能匹配到有效网卡则回写
+    if (storedInterface && currentInterface !== storedInterface && interfaces[currentInterface]) {
+        console.log(`Fixed mojibake interface name: ${storedInterface} -> ${currentInterface}`);
+        await config.updateValue("interface", currentInterface);
+    }
 
     if (!interfaces[currentInterface]) {
         if (!currentInterface) {
