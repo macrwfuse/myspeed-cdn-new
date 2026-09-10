@@ -94,35 +94,14 @@ export const OOKLA_CN_SERVERS = {
 };
 
 // ── 🎓 国内 LibreSpeed 教育网节点 ──
-// 来源: builtin-node-config.js 节点6方案
+// 2026-09 实测公网可用性: 南大/浙大正常; 其余教育网节点做了 IP 准入控制,
+// 校外公网访问必然失败(与请求头无关, 已验证带浏览器 UA/Referer 无效):
+//   中科大 test.ustc.edu.cn/backend   → HTTP 500 响应体 "not ustc" (IP 白名单)
+//   清华 iptv.tsinghua.edu.cn/st      → 307 跳 oauth.tsinghua.edu.cn LB 统一认证
+//   上交 speedtest.sjtu.edu.cn        → 302 report/error.php?err=out (仅校内 IP)
+//   武汉理工 219.140.61.101 / 湖北 119.36.86.250 / 武汉 211.67.53.2 → 不可达
+// 教育网/校园网内用户如需使用被移除节点, 可从 git 历史恢复。
 export const LIBRE_CN_SERVERS = {
-    "cn-edu-ustc": {
-        id: "cn-edu-ustc",
-        name: "教育网 · 中科大 (LibreSpeed)",
-        server: "https://test.ustc.edu.cn/backend/",
-        dlURL: "garbage.php",
-        ulURL: "empty.php",
-        pingURL: "empty.php",
-        getIpURL: "getIP.php"
-    },
-    "cn-edu-tsinghua": {
-        id: "cn-edu-tsinghua",
-        name: "教育网 · 清华 (LibreSpeed)",
-        server: "https://iptv.tsinghua.edu.cn/st/",
-        dlURL: "garbage.php",
-        ulURL: "empty.php",
-        pingURL: "empty.php",
-        getIpURL: "getIP.php"
-    },
-    "cn-edu-sjtu": {
-        id: "cn-edu-sjtu",
-        name: "教育网 · 上交 (LibreSpeed)",
-        server: "https://ftp.sjtu.edu.cn/speedtest/backend/",
-        dlURL: "garbage.php",
-        ulURL: "empty.php",
-        pingURL: "empty.php",
-        getIpURL: "getIP.php"
-    },
     "cn-edu-nju": {
         id: "cn-edu-nju",
         name: "教育网 · 南大 (LibreSpeed)",
@@ -136,33 +115,6 @@ export const LIBRE_CN_SERVERS = {
         id: "cn-edu-zju",
         name: "教育网 · 浙大 (LibreSpeed)",
         server: "http://speedtest.zju.edu.cn",
-        dlURL: "garbage.php",
-        ulURL: "empty.php",
-        pingURL: "empty.php",
-        getIpURL: "getIP.php"
-    },
-    "cn-edu-whut": {
-        id: "cn-edu-whut",
-        name: "教育网 · 武汉理工 (LibreSpeed)",
-        server: "https://219.140.61.101/backend/",
-        dlURL: "garbage.php",
-        ulURL: "empty.php",
-        pingURL: "empty.php",
-        getIpURL: "getIP.php"
-    },
-    "cn-edu-hubei": {
-        id: "cn-edu-hubei",
-        name: "教育网 · 湖北节点 (LibreSpeed)",
-        server: "https://119.36.86.250:81/backend/",
-        dlURL: "garbage.php",
-        ulURL: "empty.php",
-        pingURL: "empty.php",
-        getIpURL: "getIP.php"
-    },
-    "cn-edu-wh": {
-        id: "cn-edu-wh",
-        name: "教育网 · 武汉节点 (LibreSpeed)",
-        server: "http://211.67.53.2/backend/",
         dlURL: "garbage.php",
         ulURL: "empty.php",
         pingURL: "empty.php",
