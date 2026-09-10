@@ -104,7 +104,9 @@ function uploadProfile(uploadUrl, token = '') {
  *     → data.dl_list  下载测速点(安装包直链, 无需鉴权)
  *     → data.ul_list  上传测速点(需同一 JWT)
  *     → data.ip_info  出口 IP 归属地/运营商
- * token 过期或网络异常时返回 null，由调用方回退节点静态列表。
+ * 返回 null 表示获取失败(网络异常/响应异常); 返回 { tokenInvalid: true } 表示
+ * token 被拒(HTTP 401)，调用方据此判定 token 失效并回退共享上传池。
+ * 其余失败由调用方回退节点静态列表。
  */
 async function fetchConfList(confUrl, token, timeoutMs = 5000) {
     return new Promise((resolve) => {
@@ -120,9 +122,21 @@ async function fetchConfList(confUrl, token, timeoutMs = 5000) {
                 },
                 timeout: timeoutMs,
             }, (res) => {
+                const status = res.statusCode;
                 let body = '';
                 res.on('data', (c) => { if (body.length < 65536) body += c; });
                 res.on('end', () => {
+                    // 401 = token 过期/被拒; 此时 conf 中可能仍带 dl_list(直链无需鉴权), 一并解析
+                    if (status === 401) {
+                        let dl = [];
+                        try {
+                            const d = JSON.parse(body)?.data;
+                            if (d && Array.isArray(d.dl_list)) dl = d.dl_list.filter(u => typeof u === 'string');
+                        } catch { /* ignore */ }
+                        finish({ tokenInvalid: true, dl });
+                        return;
+                    }
+                    if (status !== 200) return finish(null);
                     try {
                         const data = JSON.parse(body)?.data;
                         if (data && Array.isArray(data.dl_list) && data.dl_list.length) {
@@ -516,16 +530,27 @@ export async function runCdnSpeedtest(serverConfig) {
 
     const token = uploadToken || process.env.LENOVO_SPEEDTEST_TOKEN || '';
 
+    // token 失效判定: conf 返回 401 → token 过期/被拒, 上传点回退共享池(下载直链无需鉴权不受影响)
+    let tokenValid = !!token;
+
     // 节点获取: 配置 confUrl + token 时按管家流程动态拉取测速点列表(失败回退静态列表)
     let confDl = null, confUl = null;
     if (confUrl && token) {
         const conf = await fetchConfList(confUrl, token);
-        if (conf) {
+        if (conf && conf.tokenInvalid) {
+            tokenValid = false;
+            if (conf.dl?.length) {
+                confDl = conf.dl;
+                console.warn(`[cdn-speedtest] token 被拒(HTTP 401, 已过期?): conf 返回 ${confDl.length} 个下载点(下载无需鉴权仍可用), 上传回退共享池`);
+            } else {
+                console.warn('[cdn-speedtest] token 被拒(HTTP 401, 已过期?): 上传回退共享池, 下载使用节点静态列表');
+            }
+        } else if (conf) {
             confDl = conf.dl;
             confUl = conf.ul;
             console.log(`[cdn-speedtest] conf 节点获取成功: ${confDl.length} 个下载点, ${confUl.length} 个上传点`);
         } else {
-            console.warn('[cdn-speedtest] conf 节点获取失败(token 过期或网络异常), 使用节点静态列表');
+            console.warn('[cdn-speedtest] conf 节点获取失败(网络异常或响应异常), 使用节点静态列表');
         }
     }
 
@@ -537,14 +562,18 @@ export async function runCdnSpeedtest(serverConfig) {
     if (fallbackDownloadUrl) dlCandidates.push(fallbackDownloadUrl);
     if (dlCandidates.length === 0) throw new Error('CDN 测速需要 downloadUrl / downloadUrls / fallbackDownloadUrl');
 
-    // 上传端点: 有 token 时走专属端点(优先 conf 返回的 ul_list); 否则从 uploadUrls 池随机选取
+    // 上传端点: token 有效时走专属端点(优先 conf 返回的 ul_list);
+    // token 缺失或已被拒(401)时回退共享上传池, 保证过期后仍能测出上传速度
     let resolvedUlUrl = null, ulToken = '';
-    if (token && ((confUl && confUl.length) || uploadUrl)) {
+    if (tokenValid && uploadUrl) {
         resolvedUlUrl = pickRandom(confUl) || uploadUrl;
         ulToken = token;
         console.log(`[cdn-speedtest] 专属上传端点(已鉴权): ${resolvedUlUrl}`);
     } else {
         resolvedUlUrl = pickRandom(uploadUrls) || uploadUrl;
+        if (token && !tokenValid && resolvedUlUrl) {
+            console.log(`[cdn-speedtest] 上传回退共享池: ${resolvedUlUrl}`);
+        }
     }
     // 上传端点请求方式/流数适配（CF 带 UA/Origin；联想带 Bearer；QQ octet-stream 多流）
     const ulProfile = resolvedUlUrl ? uploadProfile(resolvedUlUrl, ulToken) : null;
