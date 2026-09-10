@@ -67,12 +67,14 @@ function shuffle(arr) {
 
 /**
  * 上传端点适配 — 按主机自动匹配请求方式（CDN 上传池 CDN_UPLOAD_URLS 的备注在此落实）
- *   - speed.cloudflare.com/__up : 需带 UA/Origin，URL 不带额外参数
- *   - netsp.master.qq.com       : octet-stream 多流直传（实测 62.7 Mbps; 原 QMUPTEST multipart
- *                                 大包模式服务器解析慢导致测速卡顿, 已弃用）
+ *   - speed.cloudflare.com/__up   : 需带 UA/Origin，URL 不带额外参数
+ *   - speedtest.lenovo.com.cn     : 联想电脑管家上传点，需 Authorization: Bearer <JWT>
+ *                                   (无 token 返回 401 "query token is empty")
+ *   - netsp.master.qq.com         : octet-stream 多流直传（实测 62.7 Mbps; 原 QMUPTEST multipart
+ *                                   大包模式服务器解析慢导致测速卡顿, 已弃用）
  *   - 其余（mbd.baidu.com / vcs.zijieapi.com 等）: 多流 octet-stream 直传
  */
-function uploadProfile(uploadUrl) {
+function uploadProfile(uploadUrl, token = '') {
     let host = '';
     try { host = new URL(uploadUrl).hostname; } catch { return {}; }
 
@@ -84,9 +86,59 @@ function uploadProfile(uploadUrl) {
             },
         };
     }
+
+    if (host === 'speedtest.lenovo.com.cn') {
+        const headers = { 'L-App-Name': 'pcmanager' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return { headers };
+    }
+
     // netsp.master.qq.com 也走默认 octet-stream 直传(实测服务器接受任意 body 且快),
     // 无需特殊 profile
     return {};
+}
+
+/**
+ * 联想电脑管家测速节点列表动态获取（复刻管家插件 WSNetSpeedPlugin.dll 的真实流程）：
+ *   GET confUrl (Authorization: Bearer <JWT>)
+ *     → data.dl_list  下载测速点(安装包直链, 无需鉴权)
+ *     → data.ul_list  上传测速点(需同一 JWT)
+ *     → data.ip_info  出口 IP 归属地/运营商
+ * token 过期或网络异常时返回 null，由调用方回退节点静态列表。
+ */
+async function fetchConfList(confUrl, token, timeoutMs = 5000) {
+    return new Promise((resolve) => {
+        const finish = (v) => resolve(v);
+        let req;
+        try {
+            req = https.get(confUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'L-App-Name': 'pcmanager',
+                    'App-Name': 'guanjia',
+                    'User-Agent': 'libcurl-agent/1.0',   // 与管家 libcurl 请求头一致
+                },
+                timeout: timeoutMs,
+            }, (res) => {
+                let body = '';
+                res.on('data', (c) => { if (body.length < 65536) body += c; });
+                res.on('end', () => {
+                    try {
+                        const data = JSON.parse(body)?.data;
+                        if (data && Array.isArray(data.dl_list) && data.dl_list.length) {
+                            finish({
+                                dl: data.dl_list.filter(u => typeof u === 'string'),
+                                ul: Array.isArray(data.ul_list) ? data.ul_list.filter(u => typeof u === 'string') : [],
+                            });
+                        } else finish(null);
+                    } catch { finish(null); }
+                });
+                res.on('error', () => finish(null));
+            });
+        } catch { return finish(null); }
+        req.on('error', () => finish(null));
+        req.on('timeout', () => { req.destroy(); finish(null); });
+    });
 }
 
 /**
@@ -357,6 +409,17 @@ function startUploadStream(url, stats, stopped, profile = {}) {
                 timeout: 15000,
             }, (res) => {
                 res.resume();
+                // 服务器拒绝(如联想 JWT 过期返回 401)时不计入上传字节, 避免上报虚假上传速度;
+                // 只告警一次便于定位
+                if (res.statusCode >= 400) {
+                    if (!stats.warned) {
+                        stats.warned = true;
+                        console.warn(`[cdn-speedtest] 上传端点返回 HTTP ${res.statusCode} (token 过期或端点失效): ${url}`);
+                    }
+                    if (!stopped.value) setTimeout(doUpload, 1000);
+                    else resolve();
+                    return;
+                }
                 stats.totalBytes += blob.length;
                 if (!stopped.value) doUpload();
                 else resolve();
@@ -444,23 +507,47 @@ export async function runCdnSpeedtest(serverConfig) {
         uploadUrls,
         pingUrl,
         fallbackDownloadUrl,   // 保底无限流源(如 QQ 4GB SpeedTestData.dat) — 池全失效时兜底
+        confUrl,               // 节点列表动态获取接口(联想电脑管家 conf API)
+        uploadToken,           // 专属上传端点鉴权 token(联想 JWT, 8h 有效)
         streams: numStreams = STREAMS,
         downloadTime = 10,
         uploadTime = 10,
     } = serverConfig;
 
+    const token = uploadToken || process.env.LENOVO_SPEEDTEST_TOKEN || '';
+
+    // 节点获取: 配置 confUrl + token 时按管家流程动态拉取测速点列表(失败回退静态列表)
+    let confDl = null, confUl = null;
+    if (confUrl && token) {
+        const conf = await fetchConfList(confUrl, token);
+        if (conf) {
+            confDl = conf.dl;
+            confUl = conf.ul;
+            console.log(`[cdn-speedtest] conf 节点获取成功: ${confDl.length} 个下载点, ${confUl.length} 个上传点`);
+        } else {
+            console.warn('[cdn-speedtest] conf 节点获取失败(token 过期或网络异常), 使用节点静态列表');
+        }
+    }
+
     // 下载候选数组: 池内多源打乱(流内随机换源) + 保底源追加尾部。
     // 流内健康检查(statusCode>=400/网络错)会将死链记入共享集合并自动换下一候选,
     // 全部池源失效后由保底无限流源兜底 → 不再出现整次测速 0 Mbps。
-    const poolSources = (downloadUrls && downloadUrls.length ? downloadUrls : downloadUrl ? [downloadUrl] : []);
+    const poolSources = confDl || (downloadUrls && downloadUrls.length ? downloadUrls : downloadUrl ? [downloadUrl] : []);
     const dlCandidates = [...shuffle(poolSources)];
     if (fallbackDownloadUrl) dlCandidates.push(fallbackDownloadUrl);
     if (dlCandidates.length === 0) throw new Error('CDN 测速需要 downloadUrl / downloadUrls / fallbackDownloadUrl');
 
-    // 确定上传URL：优先从 uploadUrls 数组随机选取，否则用 uploadUrl
-    const resolvedUlUrl = pickRandom(uploadUrls) || uploadUrl;
-    // 上传端点请求方式/流数适配（CF 带 UA/Origin；QQ multipart QMUPTEST 多流）
-    const ulProfile = resolvedUlUrl ? uploadProfile(resolvedUlUrl) : null;
+    // 上传端点: 有 token 时走专属端点(优先 conf 返回的 ul_list); 否则从 uploadUrls 池随机选取
+    let resolvedUlUrl = null, ulToken = '';
+    if (token && ((confUl && confUl.length) || uploadUrl)) {
+        resolvedUlUrl = pickRandom(confUl) || uploadUrl;
+        ulToken = token;
+        console.log(`[cdn-speedtest] 专属上传端点(已鉴权): ${resolvedUlUrl}`);
+    } else {
+        resolvedUlUrl = pickRandom(uploadUrls) || uploadUrl;
+    }
+    // 上传端点请求方式/流数适配（CF 带 UA/Origin；联想带 Bearer；QQ octet-stream 多流）
+    const ulProfile = resolvedUlUrl ? uploadProfile(resolvedUlUrl, ulToken) : null;
 
     // 1. Ping (只统计成功样本; 全部失败时 ping=null, 由 parseData 回落为 0)
     const pingTarget = pingUrl || dlCandidates[0];
