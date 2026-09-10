@@ -57,6 +57,8 @@ const CDN_DOMAIN_GROUPS = {
     'dldir1.qq.com', 'gtimg.cn', '2345.com',
   ],
   '腾讯云CDN': ['webcdn.m.qq.com', 'master.qq.com'],
+  // 联想电脑管家测速下载点(conf 接口 data.dl_list, 见 server/controller/servers.js cdn-lenovo)
+  '联想电脑管家CDN': ['speedtest-fast.lenovo.com.cn'],
 };
 
 // ── 导入自动发现模块 ──
@@ -122,6 +124,11 @@ const KNOWN_CDN_SOURCES = {
   ],
   '腾讯云CDN': [
     'http://webcdn.m.qq.com/speed/SpeedTestData.dat',
+  ],
+  '联想电脑管家CDN': [
+    'https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_apps.exe',
+    'https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_apps_v2.8.exe',
+    'https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_preload_thinkpad_smb_apps.exe',
   ],
 };
 
