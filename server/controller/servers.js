@@ -241,6 +241,9 @@ export const CDN_SERVERS = {
     },
 
     // ── speed.do 节点 ──
+    // 2026-09-10 实测: dl1(59386)/dl2(5396)/unicom(43752) 全部超时;
+    //   telecom-gd(211.136.30.118)/mobile上传点(113.229.96.166) 502;
+    //   edu(USTC) IP 白名单拒绝(500 "not ustc")。仅 speeddo-cf-us 存活。
     "speeddo-cf-us": {
         id: "speeddo-cf-us",
         name: "【CloudFlare】美国节点",
