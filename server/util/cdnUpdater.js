@@ -231,7 +231,7 @@ export async function updateCdnNodes() {
         (deadNow.length ? ` — 判定失效 ${deadNow.length} 个` : ''));
 
     // ── 2. 只有"能找到同组备用源"的失效链接才值得构建备用池 ──
-    // 部分节点(Cloudflare / CacheFly / Steam / Microsoft 等国际 CDN)不在任何
+    // 部分节点(Cloudflare / Steam / Microsoft 等国际 CDN)不在任何
     // CDN_DOMAIN_GROUPS 分组里, 没有可替换的同源链接。把它们排除掉, 否则这类永久
     // 失效的链接会让每轮都白白重建一次备用池(发现 + 逐个验证, 很费流量)。
     const replaceable = deadNow.filter(d => matchCdnGroup(d.url));
