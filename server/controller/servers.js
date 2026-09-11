@@ -179,16 +179,10 @@ export const CDN_SERVERS = {
         downloadTime: 10,
         uploadTime: 10
     },
-    "cdn-cachefly": {
-        id: "cdn-cachefly",
-        name: "CacheFly 全球 CDN",
-        downloadUrl: "https://web1.cachefly.net/speedtest/downloading",
-        uploadUrls: CDN_UPLOAD_URLS,
-        pingUrl: "https://web1.cachefly.net/speedtest/downloading",
-        streams: 6,
-        downloadTime: 10,
-        uploadTime: 10
-    },
+    // 注: 原有 "cdn-cachefly"(CacheFly 全球 CDN) 节点已移除 ——
+    // 2026-09 实测 web1.cachefly.net 的 TCP 443 完全不可达(HEAD/GET 均 000),
+    // cachefly.com 主域仍返回 302 说明是网络不通而非服务下线。
+    // 它不在任何 CDN 分组内, 没有同源可替换, 自动更新无法修复, 故直接下架。
     "cdn-steam-akamai": {
         id: "cdn-steam-akamai",
         name: "Steam Akamai CDN",
