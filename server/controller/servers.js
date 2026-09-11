@@ -415,11 +415,14 @@ let libreServers;
 let cdnServers;
 
 /**
- * 节点自动更新的运行时覆盖层(见 server/util/nodeUpdater.js)。
+ * 节点自动更新的运行时覆盖层。
  *
  * 内置节点是静态 import, 运行时改不了, 因此自动替换结果写在这里:
- *   nodes   — 从备用池提拔进来的节点(可覆盖同 ID 的内置节点)
- *   removed — 探活连续失败被判定失效的节点 ID(墓碑, 用于"删除"内置节点)
+ *   ookla / librespeed (见 server/util/nodeUpdater.js)
+ *     nodes   — 从备用池提拔进来的节点(可覆盖同 ID 的内置节点)
+ *     removed — 探活连续失败被判定失效的节点 ID(墓碑, 用于"删除"内置节点)
+ *   cdn (见 server/util/cdnUpdater.js)
+ *     urlMap  — 失效的下载链接 → 备用池中的替代链接
  *
  * 文件不存在时返回空覆盖层, 行为与改造前一致。
  */
@@ -428,10 +431,11 @@ const readOverlay = (provider) => {
         const parsed = JSON.parse(fs.readFileSync(`./data/servers/${provider}-managed.json`, "utf8"));
         return {
             nodes: parsed.nodes ?? {},
-            removed: Array.isArray(parsed.removed) ? parsed.removed : []
+            removed: Array.isArray(parsed.removed) ? parsed.removed : [],
+            urlMap: parsed.urlMap ?? {}
         };
     } catch {
-        return {nodes: {}, removed: []};
+        return {nodes: {}, removed: [], urlMap: {}};
     }
 }
 
@@ -441,6 +445,34 @@ const applyOverlay = (merged, overlay) => {
 
     for (const id of overlay.removed) delete result[id];
     Object.assign(result, overlay.nodes);
+
+    return result;
+}
+
+/**
+ * CDN 覆盖层: 按 urlMap 把失效的下载链接换成备用池里验证过的链接
+ * (见 server/util/cdnUpdater.js)。CDN 节点是对象而不是字符串, 所以要逐字段改写。
+ */
+const applyCdnOverlay = (merged, overlay) => {
+    const urlMap = overlay.urlMap ?? {};
+    if (!Object.keys(urlMap).length) return merged;
+
+    const remap = (url) => urlMap[url] ?? url;
+    const result = {};
+
+    for (const [id, node] of Object.entries(merged)) {
+        if (!node || typeof node !== "object") {
+            result[id] = node;
+            continue;
+        }
+
+        const next = {...node};
+        if (next.downloadUrl) next.downloadUrl = remap(next.downloadUrl);
+        if (next.fallbackDownloadUrl) next.fallbackDownloadUrl = remap(next.fallbackDownloadUrl);
+        if (Array.isArray(next.downloadUrls)) next.downloadUrls = next.downloadUrls.map(remap);
+
+        result[id] = next;
+    }
 
     return result;
 }
@@ -494,7 +526,7 @@ export const getCdnServers = () => {
         } catch { }
     }
 
-    cdnServers = { ...servers, ...CDN_SERVERS };
+    cdnServers = applyCdnOverlay({ ...servers, ...CDN_SERVERS }, readOverlay("cdn"));
     return cdnServers;
 }
 
