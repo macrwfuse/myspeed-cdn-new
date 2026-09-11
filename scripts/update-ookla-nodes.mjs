@@ -12,24 +12,25 @@
  *    目录 API(www.speedtest.net/api/js/servers)比第三方清单更新更快,
  *    实测与 CLI 判定完全一致(CLI 认可的 3 个国内节点 = 目录里的 3 个;
  *    目录外的 37390 等 CLI 一律 NoServers)。
- * 2. 必须真实可测。用 Ookla 协议端点直接打流:
- *      延迟   GET  /speedtest/latency.txt        期望 200 + "test=test"
- *      下行   GET  /speedtest/download?size=N     期望 200 + 完整字节
- *      上行   POST /speedtest/upload.php         期望 200
- *    只有延迟没有带宽的节点(如 16204 实测 9.7KB/s)会被 --min-download 过滤掉。
+ * 2. 延迟必须达标。用 Ookla 协议端点测:
+ *      GET /speedtest/latency.txt → 期望 200 + "test=test"(否则判死)
+ *    每节点采 5 次取最小值, 默认只收 ≤100ms 的节点。
+ *
+ * 只测延迟不跑吞吐: 延迟能反映链路质量, 且几乎不耗流量、不压链路 ——
+ * 实测大批量国际下行会把出口打满, 反而让后续延迟测量虚高(同一节点 47ms→91ms)。
+ * 需要确认真实带宽时用 --cli 走一次官方 CLI(会消耗 Ookla 配额)。
  *
  * 走 HTTP 协议而非官方 CLI 的原因: CLI 对 server list 拉取有频率限制, 实测短时间
  * 打满后持续返回 "Limit reached" 且数分钟不恢复, 而该配额与生产测速共用。
- * 脚本默认全程不碰 CLI; 需要最终确认时用 --cli 抽样复核(会消耗配额)。
+ * 脚本默认全程不碰 CLI。
  *
  * 用法:
  *   node scripts/update-ookla-nodes.mjs                # 验证并写回 servers.js
  *   node scripts/update-ookla-nodes.mjs --dry-run      # 只报告, 不改文件
  *   node scripts/update-ookla-nodes.mjs --json         # 输出 JSON 报告
- *   node scripts/update-ookla-nodes.mjs --cli          # 额外用官方 CLI 复核(耗配额)
  *   node scripts/update-ookla-nodes.mjs --max-ping=0   # 不限制延迟(默认只收 ≤100ms)
- *   node scripts/update-ookla-nodes.mjs --min-download=500  # 下行门槛(kbps)
  *   node scripts/update-ookla-nodes.mjs --concurrency=4     # 并发探测数
+ *   node scripts/update-ookla-nodes.mjs --cli          # 额外用官方 CLI 复核(耗配额)
  *
  * 注: 结果与运行环境网络出口强相关, 换网络需重跑。
  */
@@ -69,12 +70,9 @@ const DRY_RUN = !!flag('dry-run', false);
 const JSON_OUT = !!flag('json', false);
 const USE_CLI = !!flag('cli', false);
 const BIND_IP = flag('ip', null);
-const MAX_PING = parseFloat(flag('max-ping', '100'));          // ms, 0=不限
-const MIN_DOWNLOAD = parseFloat(flag('min-download', '200'));  // kbps, 0=不限
+const MAX_PING = parseFloat(flag('max-ping', '100'));   // ms, 0=不限
 const CONCURRENCY = parseInt(flag('concurrency', '6'), 10);
 const LATENCY_TIMEOUT = parseInt(flag('latency-timeout', '8000'), 10);
-const DOWNLOAD_TIMEOUT = parseInt(flag('download-timeout', '20000'), 10);
-const DOWNLOAD_SIZE = parseInt(flag('download-size', '2000000'), 10);
 const CLI_TIMEOUT = parseInt(flag('cli-timeout', '20000'), 10);
 
 const log = (...a) => { if (!JSON_OUT) console.log(...a); };
@@ -228,38 +226,6 @@ async function measureLatency(host, samples = 5) {
     return best;
 }
 
-/** 下行吞吐: 读满 N 字节或超时为止, 返回 kbps */
-async function measureDownload(host) {
-    try {
-        const { res, ms } = await timedFetch(
-            `http://${host}/speedtest/download?size=${DOWNLOAD_SIZE}`, {}, DOWNLOAD_TIMEOUT);
-        if (res.status !== 200) return null;
-        let bytes = 0;
-        for await (const chunk of res.body) bytes += chunk.length;
-        if (!bytes) return null;
-        return Math.round(bytes * 8 / 1000 / (Math.max(ms, 1) / 1000));
-    } catch {
-        return null;
-    }
-}
-
-/** 上行吞吐: multipart POST, 返回 kbps */
-async function measureUpload(host, bytes = 512 * 1024) {
-    try {
-        const payload = Buffer.alloc(bytes, 0x78);   // 'x' * N
-        const { res, ms } = await timedFetch(`http://${host}/speedtest/upload.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: payload,
-        }, DOWNLOAD_TIMEOUT);
-        if (res.status !== 200) return null;
-        await res.arrayBuffer();
-        return Math.round(bytes * 8 / 1000 / (Math.max(ms, 1) / 1000));
-    } catch {
-        return null;
-    }
-}
-
 // ═══════════════════════════════════════════════════
 //  3. 可选的官方 CLI 复核(消耗 Ookla 配额)
 // ═══════════════════════════════════════════════════
@@ -334,10 +300,10 @@ function renderBlock(nodes, meta) {
     const lines = [
         '// ── 🇨🇳🇭🇰 国内 + 香港 Ookla Speedtest 节点 ──',
         '// 由 scripts/update-ookla-nodes.mjs 自动生成: 候选来自 bench.laset.com 与',
-        '// Ookla 官方目录, 并逐个用 Ookla 协议端点实测延迟与上下行吞吐。',
-        '// 仅保留"在 Ookla 目录中 + 实测可跑"的节点(目录外的 ID 会被 CLI 拒绝)。',
-        `// 上次验证: ${meta.date}${meta.isp ? ` · 出口 ${meta.isp} ${meta.externalIp || ''}` : ''}`.trimEnd(),
-        `// 国内 ${cn} 个 / 香港 ${nodes.length - cn} 个; 明细见 scripts/.last-ookla-report.json`,
+        '// Ookla 官方目录 API, 逐个实测延迟筛选(默认 ≤' + (meta.maxPing || 100) + 'ms)。',
+        '// 目录外的 ID 会被官方 CLI 拒绝(NoServersException), 故必须先过目录这一关。',
+        `// 上次验证: ${meta.date}`,
+        `// 国内 ${cn} 个 / 香港 ${nodes.length - cn} 个; 逐节点延迟见 scripts/.last-ookla-report.json`,
         'export const OOKLA_CN_SERVERS = {',
     ];
     nodes.forEach((n, i) => {
@@ -380,76 +346,37 @@ async function main() {
     const candidates = [...byId.values()];
     log(`   去重后共 ${candidates.length} 个候选 (目录内 ${candidates.filter(c => c.inDirectory).length} 个)`);
 
-    // ── 实测 ──
-    // 分两阶段: 先测延迟再压吞吐。二者混跑会互相干扰 —— 并发下载会把链路吃满,
-    // 令同时进行的延迟测量被排队延迟污染(实测同批节点从 47ms 虚高到 91ms)。
+    // ── 实测: 只测延迟 ──
     const notInDir = candidates.filter(c => !c.inDirectory);
     for (const n of notInDir) {
         log(`   ❌ ${String(n.id).padStart(6)} ${(n.sponsor || n.name || '').slice(0, 26).padEnd(28)} 不在 Ookla 目录中`);
     }
 
     const inDir = candidates.filter(c => c.inDirectory);
-    log(`\n🔬 阶段 A: 延迟实测 (并发 ${CONCURRENCY}, 每节点 5 次取最小)`);
+    log(`\n🔬 延迟实测 (并发 ${CONCURRENCY}, 每节点 5 次取最小` +
+        (MAX_PING > 0 ? `, 门槛 ${MAX_PING}ms` : '') + ')');
     const latencies = await pool(inDir, CONCURRENCY, n => measureLatency(n.host));
     const latById = new Map(inDir.map((n, i) => [n.id, latencies[i]]));
 
-    // 先按延迟筛, 只给通过延迟门槛的节点跑吞吐 —— 省流量, 也避免把链路压满
-    // 反过来污染下一轮的延迟测量。
-    const latencyOk = [], latencyFail = [];
-    for (const n of inDir) {
-        const ping = latById.get(n.id);
+    let kept = [];
+    for (const node of inDir) {
+        const ping = latById.get(node.id);
         const ok = ping !== null && (MAX_PING <= 0 || ping <= MAX_PING);
-        (ok ? latencyOk : latencyFail).push(n);
-        log(`   ${ok ? '✅' : '❌'} ${String(n.id).padStart(6)} ` +
-            `${(n.sponsor || n.name || '').slice(0, 26).padEnd(28)} ` +
+        log(`   ${ok ? '✅' : '❌'} ${String(node.id).padStart(6)} ` +
+            `${(node.sponsor || node.name || '').slice(0, 26).padEnd(28)} ` +
             (ping === null ? '延迟测试失败'
                 : `${String(ping).padStart(6)}ms` + (ok ? '' : ` (> ${MAX_PING}ms)`)));
-    }
-    if (latencyFail.length) {
-        log(`   ⏱  ${latencyFail.length} 个未过延迟门槛(${MAX_PING}ms), 不再测吞吐`);
-    }
-
-    log(`\n🔬 阶段 B: 上下行吞吐 (并发 ${CONCURRENCY}, 下行 ${DOWNLOAD_SIZE / 1e6}MB)`);
-    const results = await pool(latencyOk, CONCURRENCY, async node => {
-        const ping = latById.get(node.id);
-        const download = await measureDownload(node.host);
-        const upload = download === null ? null : await measureUpload(node.host);
-        const v = {
-            ping, download, upload,
-            ok: download !== null,
-            error: download === null ? '下行不可用' : null,
-        };
-        const dl = download === null ? '—' : `${(download / 1000).toFixed(1)}Mbps`;
-        const ul = upload === null ? '—' : `${(upload / 1000).toFixed(1)}Mbps`;
-        log(`   ${v.ok ? '✅' : '❌'} ${String(node.id).padStart(6)} ` +
-            `${(node.sponsor || node.name || '').slice(0, 26).padEnd(28)} ` +
-            `${String(ping).padStart(6)}ms ↓${dl.padEnd(10)}↑${ul.padEnd(10)}` + (v.error ? ` ${v.error}` : ''));
-        return { node, v };
-    });
-    for (const n of latencyFail) {
-        results.push({
-            node: n,
+        kept.push({
+            node,
             v: {
-                ping: latById.get(n.id), download: null, upload: null, ok: false,
-                error: latById.get(n.id) === null ? '延迟测试失败' : `延迟 ${latById.get(n.id)}ms 超阈值`,
+                ping, ok,
+                error: ok ? null
+                    : ping === null ? '延迟测试失败' : `延迟 ${ping}ms 超阈值`,
             },
         });
     }
-
-    // ── 过滤 ──
-    let kept = results.filter(r => r.v.ok);
-    if (MAX_PING > 0) {
-        const dropped = kept.filter(r => r.v.ping > MAX_PING);
-        kept = kept.filter(r => r.v.ping <= MAX_PING);
-        if (dropped.length) log(`\n   ⏱  丢弃 ${dropped.length} 个延迟 > ${MAX_PING}ms: ` +
-            dropped.map(d => `${d.node.id}(${d.v.ping}ms)`).join(', '));
-    }
-    if (MIN_DOWNLOAD > 0) {
-        const dropped = kept.filter(r => r.v.download < MIN_DOWNLOAD);
-        kept = kept.filter(r => r.v.download >= MIN_DOWNLOAD);
-        if (dropped.length) log(`   🐌 丢弃 ${dropped.length} 个下行 < ${MIN_DOWNLOAD}kbps: ` +
-            dropped.map(d => `${d.node.id}(${(d.v.download / 1000).toFixed(1)}Mbps)`).join(', '));
-    }
+    const results = kept;
+    kept = kept.filter(r => r.v.ok);
 
     // ── 可选: 官方 CLI 复核 ──
     if (USE_CLI && kept.length) {
@@ -497,19 +424,16 @@ async function main() {
         nodes: kept.map(({ node, v, cli }) => ({
             id: node.id, name: CITY_CN[node.name] || node.name, sponsor: node.sponsor,
             cc: node.cc, host: node.host, distance: node.distance ?? 0,
-            pingMs: v.ping, downloadKbps: v.download, uploadKbps: v.upload,
-            cliStatus: cli?.status ?? null,
+            pingMs: v.ping, cliStatus: cli?.status ?? null,
         })),
         rejected: [
             ...notInDir.map(n => ({
                 id: n.id, sponsor: n.sponsor, cc: n.cc, status: 'notInDirectory',
                 reason: '不在 Ookla 目录中(CLI 会报 NoServersException)',
             })),
-            ...results.filter(r => !r.v.ok || !kept.includes(r)).map(r => ({
+            ...results.filter(r => !r.v.ok).map(r => ({
                 id: r.node.id, sponsor: r.node.sponsor, cc: r.node.cc,
-                status: r.v.ok ? 'filtered' : 'unreachable',
-                reason: r.v.error || '未达阈值',
-                pingMs: r.v.ping, downloadKbps: r.v.download, uploadKbps: r.v.upload,
+                status: 'filtered', reason: r.v.error, pingMs: r.v.ping,
             })),
         ],
     };
@@ -523,7 +447,7 @@ async function main() {
         for (const n of report.nodes) {
             log(`   ${n.cc} ${String(n.id).padStart(6)} ${(n.name || '').padEnd(6)} ` +
                 `${(n.sponsor || '').slice(0, 24).padEnd(26)} ` +
-                `${String(n.pingMs).padStart(6)}ms ↓${(n.downloadKbps / 1000).toFixed(1)}Mbps`);
+                `${String(n.pingMs).padStart(6)}ms`);
         }
         log(`\n   报告: ${path.relative(PROJECT_ROOT, REPORT_PATH)}`);
     }
@@ -540,8 +464,7 @@ async function main() {
 
     const block = renderBlock(finalNodes, {
         date: new Date().toISOString().slice(0, 10),
-        isp: null,
-        externalIp: null,
+        maxPing: MAX_PING,
     });
     const { start, end } = existingBlockRange(src);
     fs.writeFileSync(SERVERS_JS, src.slice(0, start) + block + src.slice(end), 'utf-8');
