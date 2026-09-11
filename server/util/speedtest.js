@@ -10,8 +10,16 @@ export default async (mode, serverId, serverUrl) => {
     if (mode === "cdn") {
         const { getCdnServers } = await import("../controller/servers.js");
         const allServers = getCdnServers();
-        const serverEntry = allServers[serverId];
+
+        // 选中的节点可能已被下架(如实测不可达的 cdn-cachefly)。直接抛错会让配置里
+        // 仍指向该节点的实例从此每次定时测速都失败, 因此回退到默认节点并留下告警。
+        let serverEntry = allServers[serverId];
+        if (!serverEntry) {
+            console.warn(`CDN 节点 ${serverId} 已不存在, 本次回退到 cdn-cloudflare-25m`);
+            serverEntry = allServers["cdn-cloudflare-25m"];
+        }
         if (!serverEntry) throw new Error(`CDN 节点 ${serverId} 不存在`);
+
         return await runCdnSpeedtest(serverEntry);
     }
 
