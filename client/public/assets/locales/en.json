@@ -596,7 +596,7 @@
         "custom": "Custom cron expression",
         "next_run": "Next run:",
         "invalid_cron": "Not a valid cron expression",
-        "cdn_hint": "CDN updates run in the container scheduler and restart the server automatically. Without the container supervisor this setting only records the schedule.",
+        "cdn_hint": "Runs inside the server process: dead download links are replaced from a verified standby pool and take effect immediately, with no restart needed.",
         "presets": {
             "hourly": "Every hour",
             "daily": "Daily at 03:17",
