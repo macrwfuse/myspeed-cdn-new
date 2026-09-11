@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import https from 'node:https';
 import * as timerTask from './tasks/timer.js';
 import * as integrationTask from './tasks/integrations.js';
+import * as nodeUpdateTask from './tasks/nodeUpdate.js';
 import './util/createFolders.js';
 import './util/loadServers.js';
 import errorHandler from './util/errorHandler.js';
@@ -24,6 +25,7 @@ import { initialize as initializeIntegrations } from './controller/integrations.
 import { requestInterfaces } from './util/loadInterfaces.js';
 import { load as loadCli } from './util/loadCli.js';
 import { removeOld } from './tasks/speedtest.js';
+import * as nodeUpdateSettings from './util/nodeUpdateSettings.js';
 
 const devModeHtmlPath = path.join(process.cwd(), 'server', 'templates', 'env.html');
 const devModeHtml = fs.existsSync(devModeHtmlPath) ? fs.readFileSync(devModeHtmlPath, 'utf-8') : '';
@@ -91,6 +93,10 @@ const run = async () => {
 
     timerTask.startTimer(await config.getValue("cron"));
     setInterval(async () => removeOld(), 60000);
+
+    // 节点自动更新: 先落一份共享配置(容器调度器读它), 再按配置 arm 定时器
+    await nodeUpdateSettings.sync();
+    await nodeUpdateTask.startTimers();
 
     integrationTask.startTimer();
     if (process.env.RUN_TEST_ON_STARTUP === "true") {
