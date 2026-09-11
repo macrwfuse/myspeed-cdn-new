@@ -48,7 +48,8 @@ app.patch("/:key", password(false), async (req, res) => {
         await nodeUpdateTask.reload();
 
         const provider = req.params.key.startsWith("ookla") ? "ookla"
-            : req.params.key.startsWith("libre") ? "libre" : null;
+            : req.params.key.startsWith("libre") ? "libre"
+                : req.params.key.startsWith("cdn") ? "cdn" : null;
 
         // 刚开启的服务商立即跑一轮, 让用户马上看到效果(重复触发由任务内部去重)
         if (provider && settings[provider].enabled)
