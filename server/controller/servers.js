@@ -414,6 +414,44 @@ let ooklaServers;
 let libreServers;
 let cdnServers;
 
+/**
+ * 节点自动更新的运行时覆盖层(见 server/util/nodeUpdater.js)。
+ *
+ * 内置节点是静态 import, 运行时改不了, 因此自动替换结果写在这里:
+ *   nodes   — 从备用池提拔进来的节点(可覆盖同 ID 的内置节点)
+ *   removed — 探活连续失败被判定失效的节点 ID(墓碑, 用于"删除"内置节点)
+ *
+ * 文件不存在时返回空覆盖层, 行为与改造前一致。
+ */
+const readOverlay = (provider) => {
+    try {
+        const parsed = JSON.parse(fs.readFileSync(`./data/servers/${provider}-managed.json`, "utf8"));
+        return {
+            nodes: parsed.nodes ?? {},
+            removed: Array.isArray(parsed.removed) ? parsed.removed : []
+        };
+    } catch {
+        return {nodes: {}, removed: []};
+    }
+}
+
+/** 把覆盖层套用到已合并的节点表上 */
+const applyOverlay = (merged, overlay) => {
+    const result = {...merged};
+
+    for (const id of overlay.removed) delete result[id];
+    Object.assign(result, overlay.nodes);
+
+    return result;
+}
+
+/** 清空模块级缓存 —— 节点列表更新后必须调用, 否则改动不生效 */
+export const clearServerCache = () => {
+    ooklaServers = undefined;
+    libreServers = undefined;
+    cdnServers = undefined;
+}
+
 export const getLibreServers = () => {
     if (libreServers) return libreServers;
 
@@ -424,8 +462,8 @@ export const getLibreServers = () => {
         } catch { }
     }
 
-    // Merge CN education LibreSpeed nodes
-    libreServers = { ...servers, ...LIBRE_CN_SERVERS };
+    // Merge CN education LibreSpeed nodes, then apply runtime replacements
+    libreServers = applyOverlay({ ...servers, ...LIBRE_CN_SERVERS }, readOverlay("librespeed"));
 
     return libreServers;
 }
@@ -440,8 +478,8 @@ export const getOoklaServers = () => {
         } catch { }
     }
 
-    // Merge CN Ookla nodes
-    ooklaServers = { ...servers, ...OOKLA_CN_SERVERS };
+    // Merge CN Ookla nodes, then apply runtime replacements
+    ooklaServers = applyOverlay({ ...servers, ...OOKLA_CN_SERVERS }, readOverlay("ookla"));
 
     return ooklaServers;
 }
