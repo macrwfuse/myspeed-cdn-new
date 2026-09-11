@@ -27,6 +27,11 @@
  *   CONFIG_POLL_MS 轮询；该文件存在时其 cdn.enabled / cdn.cron 覆盖环境变量，
  *   因此页面上改完设置无需重启容器即可生效。文件不存在时完全沿用环境变量行为。
  *
+ * ⚠️ 该文件带有 cdn.handledByServer=true 时，说明服务端已用覆盖层方案接管 CDN 更新
+ *    （写 data/servers/cdn-managed.json + 清缓存，不需要改写 servers.js、不需要重启）。
+ *    此时本调度器**不再执行自己的 CDN 周期**，只保留监督 server 进程的职责 ——
+ *    两边同时更新会重复替换、互相覆盖。新版本服务端总是带此标记。
+ *
  * 说明：cdn-discovery.mjs 与 update-cdn-nodes.mjs 运行于 /myspeed/scripts；
  *       自动修复写入 /myspeed/server/controller/servers.js（建议 docker-compose 绑定挂载持久化）。
  */
@@ -82,10 +87,17 @@ function readPageSettings() {
         return {
             enabled: typeof cdn.enabled === 'boolean' ? cdn.enabled : null,
             cron: typeof cdn.cron === 'string' && cdn.cron ? cdn.cron : null,
+            // 服务端已接管 CDN 更新(覆盖层方案, 无需重启进程), 调度器不再自己跑
+            handledByServer: cdn.handledByServer === true,
         };
     } catch {
         return null;
     }
+}
+
+/** 服务端是否已接管 CDN 更新 */
+function serverHandlesCdn() {
+    return readPageSettings()?.handledByServer === true;
 }
 
 /**
@@ -303,6 +315,14 @@ async function runCycle(reason) {
     if (cycleBusy) { log(`⏭ 上一轮尚未结束，跳过本次触发: ${reason}`); return; }
     if (!C.enabled) return;
 
+    // 服务端已接管 CDN 更新：它用覆盖层(data/servers/cdn-managed.json)直接改运行时
+    // 节点表并清缓存，无需改写 servers.js、也无需重启进程。此调度器若继续跑自己的
+    // 周期就会两边重复替换、互相覆盖，因此只保留「监督 server 进程」这一职责。
+    if (serverHandlesCdn()) {
+        log(`⏭ CDN 更新已由服务端接管（覆盖层方案，无需重启），调度器跳过本轮: ${reason}`);
+        return;
+    }
+
     cycleBusy = true;
     const startedAt = Date.now();
     const beforeM = mtimeMs(SERVERS_JS);
@@ -406,11 +426,17 @@ async function main() {
     const fromPage = readPageSettings() !== null;
     applyPageSettings(false);
 
+    const serverOwns = serverHandlesCdn();
+
     log('══════════════════════════════════════════════════');
-    log('🚀 MySpeed-CN CDN 自动更新 · 监督调度器启动');
-    log(`   自动更新=${C.enabled} | cron=${C.cron} | 启动即跑=${C.onStartup}` +
-        (C.enabled ? ` | 启动延迟=${C.startDelaySec}s | 重启加载=${C.restartOnChange}` : '') +
-        (fromPage ? ' | 来源=页面设置' : ' | 来源=环境变量'));
+    log('🚀 MySpeed-CN · server 监督调度器启动');
+    if (serverOwns) {
+        log('   CDN 更新: 由服务端接管（覆盖层方案，页面上配置开关与定时）');
+    } else {
+        log(`   CDN 更新: 调度器执行 | 启用=${C.enabled} | cron=${C.cron} | 启动即跑=${C.onStartup}` +
+            (C.enabled ? ` | 启动延迟=${C.startDelaySec}s | 重启加载=${C.restartOnChange}` : '') +
+            (fromPage ? ' | 来源=页面设置' : ' | 来源=环境变量'));
+    }
     log('══════════════════════════════════════════════════');
 
     installShutdown()('SIGTERM');
@@ -429,6 +455,9 @@ async function main() {
 
     // 2) 轮询页面配置：即使当前停用也要保持轮询，页面可随时开启
     setInterval(pollConfig, CONFIG_POLL_MS);
+
+    // 服务端接管 CDN 更新时，调度器只负责监督 server 进程
+    if (serverOwns) return;
 
     if (!C.enabled) {
         log('⏸ 当前未启用自动更新（页面设置/环境变量），仅监督 server 进程；可在页面随时开启');
