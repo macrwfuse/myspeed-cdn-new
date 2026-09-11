@@ -22,6 +22,11 @@
  *   CDN_CYCLE_TIMEOUT_SEC      秒           默认 1200  （单轮总超时）
  *   CDN_LOG_DIR                目录          默认 /myspeed/logs（按天滚动日志）
  *
+ * 页面配置（优先于上述环境变量）：
+ *   服务端把页面上的开关/定时写入 /myspeed/data/node-update.json，本调度器每
+ *   CONFIG_POLL_MS 轮询；该文件存在时其 cdn.enabled / cdn.cron 覆盖环境变量，
+ *   因此页面上改完设置无需重启容器即可生效。文件不存在时完全沿用环境变量行为。
+ *
  * 说明：cdn-discovery.mjs 与 update-cdn-nodes.mjs 运行于 /myspeed/scripts；
  *       自动修复写入 /myspeed/server/controller/servers.js（建议 docker-compose 绑定挂载持久化）。
  */
@@ -38,6 +43,9 @@ const DISCOVERY_JS = path.join(PROJECT_ROOT, 'scripts', 'cdn-discovery.mjs');
 const UPDATE_JS = path.join(PROJECT_ROOT, 'scripts', 'update-cdn-nodes.mjs');
 const REPORT_JSON = path.join(PROJECT_ROOT, 'scripts', '.last-report.json');
 const DEFAULT_LOG_DIR = path.join(PROJECT_ROOT, 'logs');
+// 页面配置(由服务端写出，见 server/util/nodeUpdateSettings.js)
+const SETTINGS_JSON = path.join(PROJECT_ROOT, 'data', 'node-update.json');
+const CONFIG_POLL_MS = 60_000;
 
 const env = (k, d = '') => (process.env[k] ?? d);
 const envBool = (k, d = false) => {
@@ -61,6 +69,64 @@ const C = {
     cycleTimeoutMs: envInt('CDN_CYCLE_TIMEOUT_SEC', 1200) * 1000,
     logDir: env('CDN_LOG_DIR', DEFAULT_LOG_DIR),
 };
+
+// ─────────────────────────── 页面配置覆盖 ───────────────────────────
+/**
+ * 读取服务端写出的页面配置(server/util/nodeUpdateSettings.js)。
+ * 文件不存在或不可读时返回 null —— 表示沿用环境变量。
+ */
+function readPageSettings() {
+    try {
+        const cdn = JSON.parse(fs.readFileSync(SETTINGS_JSON, 'utf8'))?.cdn;
+        if (!cdn || typeof cdn !== 'object') return null;
+        return {
+            enabled: typeof cdn.enabled === 'boolean' ? cdn.enabled : null,
+            cron: typeof cdn.cron === 'string' && cdn.cron ? cdn.cron : null,
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * 把页面配置套用到运行时配置。返回 true 表示值有变化(调用方需重新 arm 定时器)。
+ */
+function applyPageSettings(announce) {
+    const page = readPageSettings();
+    if (!page) return false;
+
+    const enabled = page.enabled ?? C.enabled;
+    const cron = page.cron ?? C.cron;
+    if (enabled === C.enabled && cron === C.cron) return false;
+
+    if (announce)
+        log(`⚙ 页面配置变更: 自动更新 ${C.enabled}→${enabled} | cron ${C.cron}→${cron}`);
+
+    C.enabled = enabled;
+    C.cron = cron;
+    return true;
+}
+
+const scriptsAvailable = () => fs.existsSync(UPDATE_JS) && fs.existsSync(SERVERS_JS);
+
+/** 轮询页面配置; 开关或定时变化时立即重新 arm(无需重启容器) */
+function pollConfig() {
+    if (stopping || C.serverOnly) return;
+    if (!applyPageSettings(true)) return;
+
+    if (cronTimer) clearTimeout(cronTimer);
+    cronTimer = null;
+
+    if (!C.enabled) {
+        log('⏸ 自动更新已在页面停用，仅继续监督 server');
+        return;
+    }
+    if (!scriptsAvailable()) {
+        log(`⚠ 未找到 ${UPDATE_JS} 或 ${SERVERS_JS}，无法启用自动更新`);
+        return;
+    }
+    armNext();
+}
 
 // ─────────────────────────── 运行状态 ───────────────────────────
 let serverProc = null;
@@ -336,10 +402,15 @@ function installShutdown() {
 }
 
 async function main() {
+    // 先套用页面配置再打印, 让启动日志反映实际生效的值
+    const fromPage = readPageSettings() !== null;
+    applyPageSettings(false);
+
     log('══════════════════════════════════════════════════');
     log('🚀 MySpeed-CN CDN 自动更新 · 监督调度器启动');
     log(`   自动更新=${C.enabled} | cron=${C.cron} | 启动即跑=${C.onStartup}` +
-        (C.enabled ? ` | 启动延迟=${C.startDelaySec}s | 重启加载=${C.restartOnChange}` : ''));
+        (C.enabled ? ` | 启动延迟=${C.startDelaySec}s | 重启加载=${C.restartOnChange}` : '') +
+        (fromPage ? ' | 来源=页面设置' : ' | 来源=环境变量'));
     log('══════════════════════════════════════════════════');
 
     installShutdown()('SIGTERM');
@@ -356,24 +427,27 @@ async function main() {
     // 1) 先拉起 server，保证 Web 服务尽快可用
     startServer();
 
+    // 2) 轮询页面配置：即使当前停用也要保持轮询，页面可随时开启
+    setInterval(pollConfig, CONFIG_POLL_MS);
+
     if (!C.enabled) {
-        log('CDN_AUTO_ENABLED=false → 不执行自动更新，仅监督 server 进程');
+        log('⏸ 当前未启用自动更新（页面设置/环境变量），仅监督 server 进程；可在页面随时开启');
         return;
     }
 
-    // 2) 前置检查
-    if (!fs.existsSync(UPDATE_JS) || !fs.existsSync(SERVERS_JS)) {
+    // 3) 前置检查
+    if (!scriptsAvailable()) {
         log(`⚠ 未找到 ${UPDATE_JS} 或 ${SERVERS_JS}，自动更新不可用（请确认镜像包含 ./scripts）`);
         return;
     }
 
-    // 3) 容器启动/重启自动触发首轮（“容器重启自动触发”）
+    // 4) 容器启动/重启自动触发首轮（“容器重启自动触发”）
     if (C.onStartup) {
         log(`🚀 容器启动/重启：${C.startDelaySec}s 后执行首轮自动更新`);
         setTimeout(() => runCycle('容器启动/重启'), C.startDelaySec * 1000);
     }
 
-    // 4) 定时循环
+    // 5) 定时循环
     armNext();
 }
 
