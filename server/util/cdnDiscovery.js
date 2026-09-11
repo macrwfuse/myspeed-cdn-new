@@ -196,7 +196,8 @@ async function discoverFromAppStores() {
     'https://rls.tapimg.com/pub2/202310/64a7c775fa5503fc30f46c6fea6f9faf.apk',
     'https://img.mcloud.139.com/material_prod/material_media/20221128/1669626861087.png',
     'https://desk.ctyun.cn:8999/desktop-prod/software/windows_tob_client/15/64/202030001/CtyunClouddeskUniversal_2.3.0_202030001_x86_20240327104015_Setup.exe',
-    'https://web1.cachefly.net/speedtest/downloading',
+    // 注: CacheFly(web1.cachefly.net) 已剔除 —— 2026-09 实测 TCP 443 完全不可达,
+    //     留在候选里只会让每轮备用池验证白等一次超时
     'https://cdn.akamai.steamstatic.com/steam/apps/1063730/extras/NW_Sword_Sorcery_2.gif',
   ];
   urls.push(...miscUrls);
