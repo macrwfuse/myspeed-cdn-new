@@ -11,7 +11,8 @@ import {
     faSliders,
     faHardDrive,
     faGauge,
-    faUserGear
+    faUserGear,
+    faArrowRotateRight
 } from "@fortawesome/free-solid-svg-icons";
 import {ConfigContext} from "@/common/contexts/Config";
 import {StatusContext} from "@/common/contexts/Status";
@@ -26,6 +27,7 @@ import ProviderDialog from "@/common/components/ProviderDialog";
 import StorageDialog from "@/common/components/StorageDialog";
 import OptimalValuesDialog from "@/common/components/OptimalValuesDialog";
 import FrequencyDialog from "@/common/components/FrequencyDialog";
+import NodeUpdateDialog from "@/common/components/NodeUpdateDialog";
 import PasswordDialog from "@/common/components/PasswordDialog";
 import PauseDialog from "@/common/components/PauseDialog";
 import PreferencesDialog from "@/common/components/PreferencesDialog";
@@ -41,6 +43,7 @@ const DropdownComponent = ({isOpen, switchDropdown}) => {
     const [showStorageDialog, setShowStorageDialog] = useState(false);
     const [showOptimalValuesDialog, setShowOptimalValuesDialog] = useState(false);
     const [showFrequencyDialog, setShowFrequencyDialog] = useState(false);
+    const [showNodeUpdateDialog, setShowNodeUpdateDialog] = useState(false);
     const [showPasswordDialog, setShowPasswordDialog] = useState(false);
     const [showPauseDialog, setShowPauseDialog] = useState(false);
     const [showPreferencesDialog, setShowPreferencesDialog] = useState(false);
@@ -90,6 +93,7 @@ const DropdownComponent = ({isOpen, switchDropdown}) => {
         {run: () => setShowStorageDialog(true), icon: faHardDrive, text: t("dropdown.storage")},
         {run: () => setShowPasswordDialog(true), icon: faKey, text: t("dropdown.password"), previewHidden: true},
         {run: () => setShowFrequencyDialog(true), icon: faClock, text: t("dropdown.cron")},
+        {run: () => setShowNodeUpdateDialog(true), icon: faArrowRotateRight, text: t("dropdown.node_update")},
         {run: togglePause, icon: status.paused ? faPlay : faPause, text: t("dropdown." + (status.paused ? "resume_tests" : "pause_tests"))},
         {run: () => setShowIntegrationDialog(true), icon: faCircleNodes, text: t("dropdown.integrations")},
         {hr: true, key: 2},
@@ -106,6 +110,7 @@ const DropdownComponent = ({isOpen, switchDropdown}) => {
             <StorageDialog open={showStorageDialog} onClose={() => setShowStorageDialog(false)}/>
             <OptimalValuesDialog open={showOptimalValuesDialog} onClose={() => setShowOptimalValuesDialog(false)}/>
             <FrequencyDialog open={showFrequencyDialog} onClose={() => setShowFrequencyDialog(false)}/>
+            <NodeUpdateDialog open={showNodeUpdateDialog} onClose={() => setShowNodeUpdateDialog(false)}/>
             <PasswordDialog open={showPasswordDialog} onClose={() => setShowPasswordDialog(false)}/>
             <PauseDialog open={showPauseDialog} onClose={() => setShowPauseDialog(false)} onPause={updateStatus}/>
             <PreferencesDialog open={showPreferencesDialog} onClose={() => setShowPreferencesDialog(false)}/>
