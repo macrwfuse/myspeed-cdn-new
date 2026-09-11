@@ -1,9 +1,17 @@
 import express from 'express';
 import * as tests from '../controller/speedtests.js';
 import * as config from '../controller/config.js';
+import * as nodeUpdateTask from '../tasks/nodeUpdate.js';
+import * as nodeUpdateSettings from '../util/nodeUpdateSettings.js';
 import password from '../middlewares/password.js';
 
 const app = express.Router();
+
+// 导入/重置配置会批量改写节点自动更新设置, 需同步共享文件并重建定时器
+const applyNodeUpdateSettings = async () => {
+    await nodeUpdateSettings.sync();
+    await nodeUpdateTask.reload();
+}
 
 app.get("/", password(false), async (req, res) => {
     res.json(await config.getUsedStorage());
@@ -52,11 +60,13 @@ app.put("/config", password(false), async (req, res) => {
     if (process.env.PREVIEW_MODE === "true")
         return res.status(403).json({message: "You can't import the config in preview mode"});
     let result = await config.importConfig(req.body);
+    if (result) await applyNodeUpdateSettings();
     res.status(result ? 200 : 500).json({message: result ? "Config imported" : "Error importing config"});
 });
 
 app.delete("/config", password(false), async (req, res) => {
     let result = await config.factoryReset();
+    if (result) await applyNodeUpdateSettings();
     res.status(result ? 200 : 500).json({message: result ? "Config reset" : "Error resetting config"});
 });
 
