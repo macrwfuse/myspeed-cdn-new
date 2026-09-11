@@ -12,6 +12,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as interfaces from '../util/loadInterfaces.js';
 
+// CDN 自动更新由容器调度器(docker/cdn-scheduler.mjs)执行, 其开关/定时原本只能通过
+// 环境变量配置。这里把环境变量作为首次播种值, 使页面显示的状态与实际运行一致,
+// 之后以页面上的配置为准(服务端会同步到 data/node-update.json 供调度器读取)。
+const envFlag = (key, fallback) => {
+    const raw = process.env[key];
+    if (raw === undefined || raw === "") return fallback;
+    return ["1", "true", "yes", "on"].includes(String(raw).toLowerCase()) ? "true" : "false";
+};
+
 const configDefaults = {
     ping: "25",
     download: "100",
@@ -26,10 +35,26 @@ const configDefaults = {
     password: "none",
     passwordLevel: "none",
     interface: "none",
-    retentionDays: "365"
+    retentionDays: "365",
+
+    // ── 节点自动更新 ──
+    ooklaUpdateEnabled: "false",
+    ooklaUpdateCron: "17 3 * * *",
+    ooklaUpdateMaxPing: "100",
+    libreUpdateEnabled: "false",
+    libreUpdateCron: "37 3 * * *",
+    cdnUpdateEnabled: envFlag("CDN_AUTO_ENABLED", "true"),
+    cdnUpdateCron: process.env.CDN_UPDATE_CRON || "17 3 * * *"
 }
 
 const MAX_RETENTION_DAYS = 10000;
+
+// 节点自动更新的配置键(配置变更时需重启更新定时器并同步共享文件)
+export const NODE_UPDATE_KEYS = [
+    "ooklaUpdateEnabled", "ooklaUpdateCron", "ooklaUpdateMaxPing",
+    "libreUpdateEnabled", "libreUpdateCron",
+    "cdnUpdateEnabled", "cdnUpdateCron"
+];
 
 export const insertDefaults = async () => {
     let insert = [];
@@ -117,6 +142,24 @@ export const validateInput = async (key, value) => {
 
     if (key === "cron" && !cron.isValidCron(value.toString()))
         return "Not a valid cron expression";
+
+    // ── 节点自动更新 ──
+    if (key.endsWith("UpdateCron") && !cron.isValidCron(value.toString()))
+        return "Not a valid cron expression";
+
+    if (key.endsWith("UpdateEnabled") && !["true", "false"].includes(value.toString()))
+        return "You need to provide either true or false";
+
+    if (key === "ooklaUpdateMaxPing") {
+        if (/[^0-9.]/.test(value.toString()))
+            return "You need to provide a number in order to change this";
+
+        const num = parseFloat(value);
+        if (!Number.isFinite(num) || num <= 0)
+            return "You need to provide a positive number";
+
+        value = String(Math.round(num));
+    }
 
     if (key === "scheduleOffset" && !["true", "false"].includes(value))
         return "You need to provide either true or false";
