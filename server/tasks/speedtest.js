@@ -67,12 +67,14 @@ export const run = async (retryAuto = false) => {
     }
 
     if (mode === "libre" && speedtest.server && !serverUrl) {
+        // 条目有两种形态: 官方列表是"名称字符串", 自动更新提拔的池节点是完整对象
         let serverEntry = Object.entries(serverController.getLibreServers())
-            .filter(([, value]) => value === speedtest.server.name)[0];
+            .filter(([, value]) => value === speedtest.server.name || value?.name === speedtest.server.name)[0];
 
         if (serverEntry) {
             if (serverId === undefined) await config.updateValue("libreId", serverEntry[0]);
-            serverId = parseInt(serverEntry[0]);
+            // 池节点使用非数字 id(如 libre-pool-51), parseInt 会得到 NaN
+            serverId = /^[0-9]+$/.test(serverEntry[0]) ? parseInt(serverEntry[0]) : serverEntry[0];
         }
     }
 
