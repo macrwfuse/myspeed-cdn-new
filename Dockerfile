@@ -128,6 +128,19 @@ RUN set -eux; \
 # ─────────────────────────────────────────────
 FROM docker.1ms.run/oven/bun:1
 
+RUN set -eux; \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+      sed -i \
+        -e 's|deb.debian.org|mirrors.aliyun.com|g' \
+        -e 's|security.debian.org|mirrors.aliyun.com/debian-security|g' \
+        /etc/apt/sources.list.d/debian.sources; \
+    else \
+      sed -i \
+        -e 's|deb.debian.org|mirrors.aliyun.com|g' \
+        -e 's|security.debian.org|mirrors.aliyun.com/debian-security|g' \
+        /etc/apt/sources.list; \
+    fi
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata ca-certificates openssl curl \
     && rm -rf /var/lib/apt/lists/*
