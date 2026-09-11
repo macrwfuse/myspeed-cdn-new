@@ -34,7 +34,11 @@ export const read = async () => {
         },
         cdn: {
             enabled: (await config.getValue("cdnUpdateEnabled")) === "true",
-            cron: await config.getValue("cdnUpdateCron")
+            cron: await config.getValue("cdnUpdateCron"),
+            // CDN 更新现已由服务端进程内完成(server/util/cdnUpdater.js), 不再需要
+            // 容器调度器改写 servers.js 并重启。调度器看到此标记就只监督 server,
+            // 不再执行自己的 CDN 周期, 避免两边重复更新、互相覆盖。
+            handledByServer: true
         }
     };
 }
