@@ -35,102 +35,23 @@ const VERBOSE = args.includes('--verbose');
 function log(...a) { console.log(`[${new Date().toISOString()}]`, ...a); }
 function vlog(...a) { if (VERBOSE) console.log(`[${new Date().toISOString()}] [V]`, ...a); }
 
-// ── CDN 域名分组 ──
-// 用于匹配失效链接属于哪个 CDN 组，从而从同组备用池中选取替代
-const CDN_DOMAIN_GROUPS = {
-  '和彩云CDN': ['mcloud.139.com'],
-  '天翼云CDN': ['ctyun.cn'],
-  'Speedo云CDN': [
-    'bytegoofy.com', 'bytedance.com', 'byteimg.com', 'vlabstatic.com',
-    'qiniu.com', 'qnssl.com', 'qbox.me',
-    'alipay.com', 'alicdn.com', 'aliyun.com',
-    'sina.cn', 'sinaimg.cn', 'weibo.com',
-    'ws.126.net', '126.net', 'netease.com',
-    'pddpic.com', 'aixifan.com', 'vivo.com.cn',
-    'jd.com', '360buyimg.com', 'up366.cn',
-    'ljcdn.com', 'ifeng.com', 'tapimg.com',
-    'antpcdn.com', 'baidupcs.com',
-    'sohu.com', 'itc.cn',
-  ],
-  '360云CDN': [
-    '360tpcdn.com', 'sogou.com', 'qq.com', 'cntv.cn',
-    'dldir1.qq.com', 'gtimg.cn', '2345.com',
-  ],
-  '腾讯云CDN': ['webcdn.m.qq.com', 'master.qq.com'],
-  // 联想电脑管家测速下载点(conf 接口 data.dl_list, 见 server/controller/servers.js cdn-lenovo)
-  '联想电脑管家CDN': ['speedtest-fast.lenovo.com.cn'],
-};
-
-// ── 导入自动发现模块 ──
-let discoverAllCdnUrls, matchCdnGroupFn;
+// ── CDN 分组 / 备用池种子 / 自动发现 ──
+// 全部来自 server/util/cdnDiscovery.js。那份实现是运行时更新(server/util/cdnUpdater.js)
+// 与容器调度器共用的单一来源 —— 编译后的二进制访问不到 scripts/，所以逻辑必须放在
+// server/ 下，这里只做引用。
+let discoverAllCdnUrls, matchCdnGroupFn, KNOWN_CDN_SOURCES;
 try {
-  const mod = await import('./cdn-discovery.mjs');
+  const mod = await import('../server/util/cdnDiscovery.js');
   discoverAllCdnUrls = mod.discoverAllCdnUrls;
   matchCdnGroupFn = mod.matchCdnGroup;
-} catch {
-  // 降级: 无发现模块时使用内置静态列表
+  KNOWN_CDN_SOURCES = mod.KNOWN_CDN_SOURCES;
+} catch (e) {
+  // 降级: 无法加载时不做发现, 且没有种子源(仅能依靠现有存活链接)
+  console.warn(`[warn] 无法加载 server/util/cdnDiscovery.js: ${e.message}`);
   discoverAllCdnUrls = async () => [];
   matchCdnGroupFn = null;
+  KNOWN_CDN_SOURCES = {};
 }
-
-// ── 已知稳定 CDN 下载源（备用池种子）──
-const KNOWN_CDN_SOURCES = {
-  'Speedo云CDN': [
-    'https://lf9-apk.ugapk.cn/package/apk/aweme/5072_340301/aweme_douyin-huidu-gw-aweme-3430_v5072_340301_eea8_1747058635.apk',
-    'https://cdn.aixifan.com/downloads/AcfunLive-Setup-1.9.0.200-ReleaseX64_6d5c40.exe',
-    'https://devtools.qiniu.com/linux/amd64/qrsctl',
-    'https://devtools.qiniu.com/qdoractl-darwin-amd64-0.4.6',
-    'https://gw.alipayobjects.com/os/volans-demo/93211a67-0eed-40ff-8a48-f6c137a88781/MiniProgramStudio-3.1.3.exe',
-    'https://downapp.sina.cn/m/06/sinaNews_8.27.0_1719288606_4386_3538_armeabi-v7a.apk',
-    'https://i1.sinaimg.cn/edu/sinaopen/SinaOpencourse_V2.02.apk',
-    'https://statics.itc.cn/lt-app/sohumobile_official_gray_optimizeRelease_4_1.0.3_01161850.apk',
-    'https://open-image.ws.126.net/android_phone_release-sp_open-v9.9.9-v0a5b3c1dc0df472bb2fb057d0a5426c3.apk',
-    'https://open-image.ws.126.net/android_phone_release-sp_open-v9.10.1-vb7b79d6b531448baaca3a81e7fbdc13f.apk',
-    'https://lf3-cdn-tos.bytegoofy.com/obj/douyin-pc-client/7044145585217083655/releases/8293088/1.0.8/win32-ia32/douyin-v1.0.8-win32-ia32-douyin.exe',
-    'https://lf6-cdn-tos.bytegoofy.com/obj/douyin-pc-client/7044145585217083655/releases/8293088/1.0.8/win32-ia32/douyin-v1.0.8-win32-ia32-douyin.exe',
-    'https://wwwstatic.vivo.com.cn/vivoportal/files/download/app/20231026/350bda07c8a0719919bcadbf5aea3538.apk',
-    'https://cd.pddpic.com/android_dev/2023-11-08/a35eaee8e1f9f018cc40ace12931f7a2.apk',
-    'https://cd.pddpic.com/android_dev/2024-06-26/06027b4121edcd1f106d992128a7124b.apk',
-    'https://cd.pddpic.com/volantis-open/volantis-common/app/com.xunmeng.workBench/Release_1834716.exe',
-    'https://lf3-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe',
-    'https://lf6-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe',
-    'https://lf9-package.vlabstatic.com/obj/faceu-packages/Jianying_split_4_8_0_10791_jianyingpro_0.exe',
-    'https://file.ljcdn.com/saas-pkg/asaas-new/new_asaas_4.0.56_win_prod.zip',
-    'https://video19.ifeng.com/video09/2022/07/06/p6950362006465552946-102-162611.mp4',
-    'https://download.jr.jd.com/downapp/jrapp_jr9631.apk',
-    'https://rls.tapimg.com/pub2/202310/64a7c775fa5503fc30f46c6fea6f9faf.apk',
-    'https://apk.360buyimg.com/build-cms/V5.2.0-4258-800000136-bazaar-64bit.apk',
-    'https://upgrade.k.sohu.com/upgrade/SohuNews_V7.3.6_0421110326_online_1003.apk',
-    'https://8c8947-1956185621.antpcdn.com:19001/b/pkg-ant.baidu.com/issue/netdisk/LinuxGuanjia/4.17.7/baidunetdisk_4.17.7_amd64.deb',
-    'https://1270e8-3086970414.antpcdn.com:19001/b/pkg-ant.baidu.com/issue/netdisk/yunguanjia/BaiduNetdisk_7.55.1.101.exe',
-  ],
-  '360云CDN': [
-    'https://cdn.qq.ime.sogou.com/QQPinyin_Setup_6.6.6304.400.exe',
-    'http://softdlc.360tpcdn.com/auto/20201130/2000000064_f07aefc3d918ebdafa9418f3f5ef5f9c.exe',
-    'https://dldir1.qq.com/qqtv/TencentVideo11.99.8523.0.exe',
-    'http://softdlc.360tpcdn.com/auto/20201127/23_21ed487ededbbb428b2a7dcecc969c7c.exe',
-    'https://download.cntv.cn/cbox/v6/ysyy_v6.0.3.3_1001_setup_x64.exe',
-    'http://softdlc.360tpcdn.com/auto/20201127/100101123_879baf4f2d9d14f191be2443e16504af.exe',
-    'http://bigsoftdlc.360tpcdn.com/auto/20200826/104511_999095167454c21f770b31e8f080ebb7.exe',
-    'http://bigsoftdlc.360tpcdn.com/auto/20210401/103779382_99dafefbd4193095a95fa713348fe6e7.exe',
-    'http://bigsoftdlc.360tpcdn.com/auto/20201125/105005364_74cbde2c220e12dbd49b2c86e0ab2c6f.exe',
-    'https://dl.2345.com/pic/2345pic_x64_v11.3.0.10165.exe',
-  ],
-  '和彩云CDN': [
-    'https://img.mcloud.139.com/material_prod/material_media/20221128/1669626861087.png',
-  ],
-  '天翼云CDN': [
-    'https://desk.ctyun.cn:8999/desktop-prod/software/windows_tob_client/15/64/202030001/CtyunClouddeskUniversal_2.3.0_202030001_x86_20240327104015_Setup.exe',
-  ],
-  '腾讯云CDN': [
-    'http://webcdn.m.qq.com/speed/SpeedTestData.dat',
-  ],
-  '联想电脑管家CDN': [
-    'https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_apps.exe',
-    'https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_apps_v2.8.exe',
-    'https://speedtest-fast.lenovo.com.cn/download/lenovopcmanager_preload_thinkpad_smb_apps.exe',
-  ],
-};
 
 // ── 网络工具 ──
 const FETCH_TIMEOUT = 15_000;
