@@ -2,17 +2,17 @@ import fs from 'node:fs';
 
 // ── 🇨🇳🇭🇰 国内 + 香港 Ookla Speedtest 节点 ──
 // 由 scripts/update-ookla-nodes.mjs 自动生成: 候选来自 bench.laset.com 与
-// Ookla 官方目录, 并逐个用 Ookla 协议端点实测延迟与上下行吞吐。
-// 仅保留"在 Ookla 目录中 + 实测可跑"的节点(目录外的 ID 会被 CLI 拒绝)。
-// 上次验证: 2026-09-10
-// 国内 2 个 / 香港 9 个; 明细见 scripts/.last-ookla-report.json
+// Ookla 官方目录 API, 逐个实测延迟筛选(默认 ≤100ms)。
+// 目录外的 ID 会被官方 CLI 拒绝(NoServersException), 故必须先过目录这一关。
+// 上次验证: 2026-09-11
+// 国内 4 个 / 香港 9 个; 逐节点延迟见 scripts/.last-ookla-report.json
 export const OOKLA_CN_SERVERS = {
     "24447": {
         name: "上海",
         sponsor: "China Unicom 5G",
         country: "China",
         cc: "CN",
-        distance: 1036,
+        distance: 1034,
         host: "mobile.shunicomtest.com.prod.hosts.ooklaserver.net:8080"
     },
     "30852": {
@@ -20,55 +20,87 @@ export const OOKLA_CN_SERVERS = {
         sponsor: "Duke Kunshan University",
         country: "China",
         cc: "CN",
-        distance: 1005,
+        distance: 1003,
         host: "speedtest.dukekunshan.edu.cn:8080"
     },
-    "60177": {
-        name: "香港",
-        sponsor: "Club SIM by HKT",
-        country: "Hong Kong",
-        cc: "HK",
-        distance: 849,
-        host: "hkt.hkspeedtest.com.prod.hosts.ooklaserver.net:8080"
+    "3633": {
+        name: "上海",
+        sponsor: "China Telecom",
+        country: "China",
+        cc: "CN",
+        distance: 1034,
+        host: "speedtest1.online.sh.cn:8080"
+    },
+    "16204": {
+        name: "苏州",
+        sponsor: "JSQY",
+        country: "China",
+        cc: "CN",
+        distance: 980,
+        host: "speedtest.jsqiuying.com:8080"
     },
     "60178": {
         name: "香港",
         sponsor: "Sun Mobile",
         country: "Hong Kong",
         cc: "HK",
-        distance: 849,
+        distance: 854,
         host: "sunmobile.hkspeedtest.com.prod.hosts.ooklaserver.net:8080"
     },
-    "13538": {
+    "1536": {
         name: "香港",
-        sponsor: "CSL",
+        sponsor: "STC",
         country: "Hong Kong",
         cc: "HK",
-        distance: 842,
-        host: "csl.hkspeedtest.com.prod.hosts.ooklaserver.net:8080"
+        distance: 854,
+        host: "suntechspeedtest.com.prod.hosts.ooklaserver.net:8080"
     },
-    "57779": {
+    "32155": {
         name: "香港",
-        sponsor: "ラタトスク",
+        sponsor: "CMHK Mobile Service",
         country: "Hong Kong",
         cc: "HK",
-        distance: 849,
-        host: "hoshiyomi.ratatoskr.org.prod.hosts.ooklaserver.net:8080"
+        distance: 850,
+        host: "speedtest.hk.chinamobile.com:8080"
     },
     "43356": {
         name: "香港",
         sponsor: "1010",
         country: "Hong Kong",
         cc: "HK",
-        distance: 848,
+        distance: 853,
         host: "1010.hkspeedtest.com.prod.hosts.ooklaserver.net:8080"
+    },
+    "57779": {
+        name: "香港",
+        sponsor: "ラタトスク",
+        country: "Hong Kong",
+        cc: "HK",
+        distance: 854,
+        host: "hoshiyomi.ratatoskr.org.prod.hosts.ooklaserver.net:8080"
+    },
+    "60177": {
+        name: "香港",
+        sponsor: "Club SIM by HKT",
+        country: "Hong Kong",
+        cc: "HK",
+        distance: 854,
+        host: "hkt.hkspeedtest.com.prod.hosts.ooklaserver.net:8080"
+    },
+    "13538": {
+        name: "香港",
+        sponsor: "CSL",
+        country: "Hong Kong",
+        cc: "HK",
+        distance: 846,
+        host: "csl.hkspeedtest.com.prod.hosts.ooklaserver.net:8080"
     },
     "63143": {
         name: "香港",
         sponsor: "Netvigator",
         country: "Hong Kong",
         cc: "HK",
-        distance: 846,
+        distance: 851,
         host: "hkspeedtest.netvigator.com.prod.hosts.ooklaserver.net:8080"
     },
     "37639": {
@@ -76,24 +108,8 @@ export const OOKLA_CN_SERVERS = {
         sponsor: "CMHK Broadband",
         country: "Hong Kong",
         cc: "HK",
-        distance: 846,
+        distance: 850,
         host: "speedtestbb.hk.chinamobile.com:8080"
-    },
-    "32155": {
-        name: "香港",
-        sponsor: "CMHK Mobile Service",
-        country: "Hong Kong",
-        cc: "HK",
-        distance: 846,
-        host: "speedtest.hk.chinamobile.com:8080"
-    },
-    "1536": {
-        name: "香港",
-        sponsor: "STC",
-        country: "Hong Kong",
-        cc: "HK",
-        distance: 849,
-        host: "suntechspeedtest.com.prod.hosts.ooklaserver.net:8080"
     }
 };
 
